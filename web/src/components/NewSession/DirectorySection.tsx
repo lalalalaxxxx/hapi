@@ -65,6 +65,9 @@ export function DirectorySection(props: {
                 <div className="relative flex-1 min-w-0">
                     <input
                         type="text"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
                         placeholder={t('newSession.placeholder')}
                         value={props.directory}
                         onChange={(event) => props.onDirectoryChange(event.target.value)}
