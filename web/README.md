@@ -137,6 +137,9 @@ See `src/hooks/useAuth.ts` and `src/hooks/useAuthSource.ts`.
 - Telegram Mini App: Uses initData from WebApp SDK.
 - Browser: Uses CLI_API_TOKEN from login prompt.
 - JWT tokens with auto-refresh.
+- Authentication has a 15-second deadline, including response body reads. A stalled
+  browser login returns to the login screen with a network/Hub URL error instead
+  of staying on the authentication spinner. Existing access tokens are retained.
 
 ## Data fetching
 
