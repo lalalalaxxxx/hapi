@@ -1730,6 +1730,20 @@ export class SyncEngine {
         }
     }
 
+    async archiveIdleSession(sessionId: string): Promise<boolean> {
+        const session = this.getSession(sessionId)
+        if (!session || !isLiveLifecycleState(session.metadata?.lifecycleState)) return false
+        // Connected sessions must have passed the existing progress-based idle
+        // timeout. Disconnected running rows may still own orphan processes.
+        if (session.active && session.metadata?.lifecycleState !== 'idle') return false
+        if (session.metadata?.idleReconcileExempt || session.thinking
+            || (session.backgroundTaskCount ?? 0) > 0
+            || Object.keys(session.agentState?.requests ?? {}).length > 0
+            || this.store.messages.getUninvokedLocalMessages(sessionId).length > 0) return false
+        await this.archiveSession(sessionId)
+        return true
+    }
+
     async archiveSession(sessionId: string): Promise<void> {
         // tiann/hapi#916 / #1910: KillSession is a session-socket RPC. A missing
         // target does not prove the runner child is dead (stale registration,

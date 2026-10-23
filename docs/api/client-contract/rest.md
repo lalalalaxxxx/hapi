@@ -45,8 +45,8 @@ Source: `hub/src/web/routes/sessions.ts`; request schemas in `shared/src/apiType
 | `POST /api/sessions/:id/resume` | `{permissionMode?}` (`ResumeSessionRequestSchema`) | `{type: 'success', sessionId}` |
 | `POST /api/sessions/:id/reopen` | `{}` | `{ok: true, sessionId, resumed: boolean, cursorSessionProtocol?}` (`ReopenSessionResponseSchema`); `422 {error, missing[]}` if metadata is incomplete |
 | `POST /api/sessions/:id/abort` | `{}` | `{ok: true}` (active sessions only) |
-| `POST /api/sessions/:id/archive` | `{}` | `{ok: true}` or `{ok: true, alreadyArchived: true}`; 409 for a plain inactive session |
-| `DELETE /api/sessions/:id` | — | `{ok: true}`; 409 while active (archive first) |
+| `POST /api/sessions/:id/archive` | `{}` | `{ok: true}` or `{ok: true, alreadyArchived: true}`; 409 for a plain inactive session. Optional `?onlyIfIdle=true` returns `{ok: true, skipped: boolean}` after checking idle state and pending work; preserves history for reopen. |
+| `DELETE /api/sessions/:id` | — | `{ok: true}`; 409 while active unless `?stop=true` requests stopping first. Failed termination retains the session; stale-running disconnected rows are also stopped. Deletes HAPI history, not workspace files. |
 | `PATCH /api/sessions/:id` | `{name}` (1–255 chars) | `{ok: true}` (rename) |
 | `PATCH /api/sessions/:id/summary` | `{text}` (1–255 chars) | `{ok: true}` |
 | `PUT /api/sessions/:id/pin` | `{mode: 'none'\|'project'\|'global'}` | `{ok: true}` |

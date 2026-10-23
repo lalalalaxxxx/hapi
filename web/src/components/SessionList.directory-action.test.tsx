@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 import type { SessionSummary } from '@/types/api'
+import type { ApiClient } from '@/api/client'
 import { I18nProvider } from '@/lib/i18n-context'
 import { ToastProvider } from '@/lib/toast-context'
 import { SessionList } from './SessionList'
@@ -59,6 +60,26 @@ function renderWithProviders(children: ReactNode) {
 }
 
 describe('SessionList directory action', () => {
+    it('deletes hidden sessions in the selected directory without touching another machine', async () => {
+        const remove = vi.fn(async () => {})
+        const sessions = [
+            makeSession({ id: 'visible', active: true, metadata: { path: '/project', machineId: 'one', name: 'Visible session' } }),
+            makeSession({ id: 'hidden', metadata: { path: '/project', machineId: 'one', name: 'Hidden session' } }),
+            makeSession({ id: 'other-machine', metadata: { path: '/project', machineId: 'two', name: 'Another machine' } })
+        ]
+        renderWithProviders(<SessionList sessions={sessions} onSelect={vi.fn()} onNewSession={vi.fn()}
+            onRefresh={vi.fn()} isLoading={false} renderHeader={false}
+            api={{ deleteSession: remove } as unknown as ApiClient} />)
+        fireEvent.click(screen.getByRole('button', { name: SEARCH_LABEL }))
+        fireEvent.change(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), { target: { value: 'Visible' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Delete this directory from HAPI' }))
+        expect(screen.getByText(/all 2 HAPI sessions/)).toBeInTheDocument()
+        expect(remove).not.toHaveBeenCalled()
+        fireEvent.click(screen.getByRole('button', { name: 'Delete directory sessions' }))
+        await waitFor(() => expect(remove).toHaveBeenCalledTimes(2))
+        expect(remove.mock.calls).toEqual([['visible', { stop: true }], ['hidden', { stop: true }]])
+    })
+
     it('starts a new session with the project machine and directory', () => {
         const onNewSessionInDirectory = vi.fn()
         const session = makeSession({

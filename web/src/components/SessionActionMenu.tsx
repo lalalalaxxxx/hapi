@@ -427,17 +427,17 @@ export function SessionActionMenu(props: SessionActionMenuProps) {
                                 {reopenDisabledReason ?? reopenHint ?? t('session.action.reopen')}
                             </HoverTooltip>
                         ) : null}
-                        <button
-                            type="button"
-                            role="menuitem"
-                            className={`${baseItemClassName} text-red-500 hover:bg-red-500/10`}
-                            onClick={handleDelete}
-                        >
-                            <TrashIcon className="text-red-500" />
-                            {t('session.action.delete')}
-                        </button>
                     </>
                 )}
+                <button
+                    type="button"
+                    role="menuitem"
+                    className={`${baseItemClassName} text-red-500 hover:bg-red-500/10`}
+                    onClick={handleDelete}
+                >
+                    <TrashIcon className="text-red-500" />
+                    {t('session.action.delete')}
+                </button>
             </div>
         </div>
     )

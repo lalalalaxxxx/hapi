@@ -3,22 +3,24 @@ import { createServer } from 'node:http';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { EventEmitter } from 'node:events';
 import type { AgentState, Metadata } from '@/api/types';
 import type { ApiSessionClient } from '@/api/apiSession';
 import { CodexAppServerClient } from '../codexAppServerClient';
 import { initializeSharedClient } from './launch';
 import { record } from './gateway';
 import { isProcessAlive } from '@/utils/process';
+import { notifyRunnerSessionStarted } from '@/runner/controlClient';
 
 const state = vi.hoisted(() => ({ home: '', sessions: new Map<string, MockSession>(), beforeBootstrap: undefined as (() => Promise<void>) | undefined }));
-class MockSession {
+class MockSession extends EventEmitter {
     readonly sessionId = randomUUID();
     state: AgentState = { requests: { 'old-worker': { tool: 'request_user_input', arguments: {}, createdAt: 0 } } }; metadata: Metadata;
     messages: unknown[] = []; consumed: string[] = []; dead = false;
     user?: (message: { content: { text: string } }, id?: string) => void;
     rpc = new Map<string, (params: unknown) => Promise<unknown>>();
     rpcHandlerManager = { registerHandler: (name: string, fn: (params: unknown) => Promise<unknown>) => { this.rpc.set(name, fn); } };
-    constructor(cwd: string) { this.metadata = { path: cwd, host: 'test', hostPid: process.pid, machineId: 'test', flavor: 'codex', capabilities: { concurrentClients: true } }; }
+    constructor(cwd: string) { super(); this.metadata = { path: cwd, host: 'test', hostPid: process.pid, machineId: 'test', flavor: 'codex', capabilities: { concurrentClients: true } }; }
     getMetadata() { return this.metadata; }
     updateMetadata(fn: (m: Metadata) => Metadata) { this.metadata = fn(this.metadata); }
     updateAgentState(fn: (s: AgentState) => AgentState) { this.state = fn(this.state); }
@@ -31,7 +33,7 @@ class MockSession {
     emitSteerIndeterminate() {} keepAlive() {} emitSessionReady() {}
     async setSteerDeliveryState() { return true; }
     syncNativeQueuedMessage() {}
-    sendSessionDeath() { this.dead = true; } async flush() {} close() {} isPending() { return false; }
+    sendSessionDeath() { this.dead = true; } async flush() {} close() { this.removeAllListeners(); } isPending() { return false; }
 }
 vi.mock('@/configuration', () => ({ configuration: { get happyHomeDir() { return state.home; }, apiUrl: 'http://mock-hub', cliApiToken: 'test' } }));
 vi.mock('@/ui/logger', () => ({ logger: { debug: (...args: unknown[]) => { if (process.env.HAPI_DEBUG_SHARED_TEST) console.log(...args); }, warn: vi.fn(), info: vi.fn(), debugLargeJson: vi.fn() } }));
@@ -158,7 +160,11 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Code
                 expect(usageModels).toContain('second-mock');
             }, { timeout: 15_000 });
             await first.disconnect(); expect(web.dead).toBe(false);
+            // Losing the runner during the final archive must not strand the
+            // private engine after all roots and frontend sockets have closed.
+            vi.mocked(notifyRunnerSessionStarted).mockRejectedValueOnce(new Error('runner unavailable'));
             await second.request('thread/archive', { threadId: initial }); roots = [];
+            await vi.waitFor(() => expect(isProcessAlive(runtime.serverPid!)).toBe(false), { timeout: 10_000 });
             await running;
         } finally {
             for (const threadId of roots) {

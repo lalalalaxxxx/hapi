@@ -63,6 +63,8 @@ function createApp(session: Session, opts?: {
     getSessionExport?: (sessionId: string, session: Session, options?: { force?: boolean }) => unknown
     sessionExists?: boolean
     archiveSession?: (sessionId: string) => Promise<void>
+    archiveIdleSession?: (sessionId: string) => Promise<boolean>
+    deleteSession?: (sessionId: string) => Promise<void>
     getCursorChatStoreStatus?: SyncEngine['getCursorChatStoreStatus']
     listCodexModelsForSession?: SyncEngine['listCodexModelsForSession']
     forkConversation?: SyncEngine['forkConversation']
@@ -159,6 +161,8 @@ function createApp(session: Session, opts?: {
             status: { onDisk: true, store: 'acp' as const }
         })),
         archiveSession: archiveSessionMock,
+        archiveIdleSession: opts?.archiveIdleSession ?? (async () => false),
+        deleteSession: opts?.deleteSession ?? (async () => {}),
         setSessionPinned: opts?.setSessionPinned ?? (() => {}),
         setSessionPinMode: opts?.setSessionPinMode ?? (() => {}),
         getSessionExport: opts?.getSessionExport ?? (() => ({
@@ -194,6 +198,67 @@ function createApp(session: Session, opts?: {
 }
 
 describe('sessions routes', () => {
+    it('stops an active session before deleting it when explicitly requested', async () => {
+        const calls: string[] = []
+        const { app } = createApp(createSession(), {
+            archiveSession: async () => { calls.push('stop') },
+            deleteSession: async () => { calls.push('delete') }
+        })
+        expect((await app.request('/api/sessions/session-1?stop=true', { method: 'DELETE' })).status).toBe(200)
+        expect(calls).toEqual(['stop', 'delete'])
+    })
+
+    it('keeps the session when its process cannot be stopped', async () => {
+        let deleted = false
+        const { app } = createApp(createSession(), {
+            archiveSession: async () => { throw new Error('Session process is still running and could not be stopped') },
+            deleteSession: async () => { deleted = true }
+        })
+        expect((await app.request('/api/sessions/session-1?stop=true', { method: 'DELETE' })).status).toBe(409)
+        expect(deleted).toBe(false)
+    })
+
+    it('keeps the existing active-delete guard without the stop option', async () => {
+        let stopped = false
+        const { app } = createApp(createSession(), { archiveSession: async () => { stopped = true } })
+        expect((await app.request('/api/sessions/session-1', { method: 'DELETE' })).status).toBe(409)
+        expect(stopped).toBe(false)
+    })
+
+    it('reaps disconnected running sessions before deletion but skips already archived rows', async () => {
+        for (const lifecycleState of ['running', 'idle', 'archived'] as const) {
+            const calls: string[] = []
+            const { app } = createApp(createSession({ active: false, metadata: { path: '/tmp', host: 'h', lifecycleState } }), {
+                archiveSession: async () => { calls.push('stop') },
+                deleteSession: async () => { calls.push('delete') }
+            })
+            expect((await app.request('/api/sessions/session-1?stop=true', { method: 'DELETE' })).status).toBe(200)
+            expect(calls).toEqual(lifecycleState === 'archived' ? ['delete'] : ['stop', 'delete'])
+        }
+    })
+
+    it('reports skipped idle cleanup without archiving a now-busy session', async () => {
+        let archived = false
+        const { app } = createApp(createSession({ thinking: true }), {
+            archiveIdleSession: async () => false,
+            archiveSession: async () => { archived = true }
+        })
+        const response = await app.request('/api/sessions/session-1/archive?onlyIfIdle=true', { method: 'POST' })
+        expect(await response.json()).toEqual({ ok: true, skipped: true })
+        expect(archived).toBe(false)
+    })
+
+    it('does not stop or delete an inaccessible session', async () => {
+        const calls: string[] = []
+        const { app } = createApp(createSession(), {
+            sessionExists: false,
+            archiveSession: async () => { calls.push('stop') },
+            deleteSession: async () => { calls.push('delete') }
+        })
+        expect((await app.request('/api/sessions/missing?stop=true', { method: 'DELETE' })).status).toBe(404)
+        expect(calls).toEqual([])
+    })
+
     it('dispatches plan implementation using the authenticated namespace and returns stale/unknown outcomes', async () => {
         const session = createSession({ metadata: { path: '/tmp', host: 'test', flavor: 'codex', capabilities: { concurrentClients: true } } })
         const calls: unknown[] = []

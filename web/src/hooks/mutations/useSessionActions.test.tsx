@@ -22,6 +22,18 @@ beforeEach(() => {
     vi.clearAllMocks()
 })
 
+describe('useSessionActions - deleteSession', () => {
+    it('requests process termination before deleting the session', async () => {
+        const remove = vi.fn(async () => {})
+        const { result } = renderHook(
+            () => useSessionActions({ deleteSession: remove } as unknown as ApiClient, 'active-session'),
+            { wrapper: createWrapper() }
+        )
+        await act(async () => { await result.current.deleteSession() })
+        expect(remove).toHaveBeenCalledWith('active-session', { stop: true })
+    })
+})
+
 afterEach(() => {
     vi.restoreAllMocks()
 })

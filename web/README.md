@@ -65,6 +65,11 @@ See `src/router.tsx` for route definitions.
 - Todo progress display.
 - Pending permission request count.
 - Agent name and model display.
+- Directory actions to clean up long-idle/disconnected processes while keeping
+  resumable history, or stop and delete all directory sessions from HAPI.
+  Directory deletion includes filtered/pinned rows and worktrees on the same
+  machine, preserves files on disk, and reports partial failures for retry.
+- Active sessions also offer Delete; the hub stops them before removing history.
 
 ### Chat interface (`src/components/SessionChat.tsx`)
 

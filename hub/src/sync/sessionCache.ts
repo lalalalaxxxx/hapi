@@ -156,13 +156,21 @@ export class SessionCache {
         this.refreshSession(sessionId)
     }
 
+    private forgetSession(sessionId: string): boolean {
+        const existed = this.sessions.delete(sessionId)
+        this.lastBroadcastAtBySessionId.delete(sessionId)
+        this.todoBackfillAttemptedSessionIds.delete(sessionId)
+        this.pendingThinkingUntilBySessionId.delete(sessionId)
+        this.runtimeConfigUpdatedAtBySessionId.delete(sessionId)
+        this.agentProgressAtBySessionId.delete(sessionId)
+        this.deduplicatePending.delete(sessionId)
+        return existed
+    }
+
     refreshSession(sessionId: string): Session | null {
         let stored = this.store.sessions.getSession(sessionId)
         if (!stored) {
-            const existed = this.sessions.delete(sessionId)
-            this.pendingThinkingUntilBySessionId.delete(sessionId)
-            this.runtimeConfigUpdatedAtBySessionId.delete(sessionId)
-            this.agentProgressAtBySessionId.delete(sessionId)
+            const existed = this.forgetSession(sessionId)
             if (existed) {
                 this.publisher.emit({ type: 'session-removed', sessionId })
             }
@@ -1221,11 +1229,7 @@ export class SessionCache {
             throw new Error('Failed to delete session')
         }
 
-        this.sessions.delete(sessionId)
-        this.lastBroadcastAtBySessionId.delete(sessionId)
-        this.todoBackfillAttemptedSessionIds.delete(sessionId)
-        this.pendingThinkingUntilBySessionId.delete(sessionId)
-        this.agentProgressAtBySessionId.delete(sessionId)
+        this.forgetSession(sessionId)
 
         void import('../scratchlistAttachments/storage').then(async ({
             deleteScratchlistAttachmentFiles,
@@ -1469,19 +1473,16 @@ export class SessionCache {
                 throw new Error('Failed to delete old session during merge')
             }
 
-            const existed = this.sessions.delete(oldSessionId)
+            const oldProgressAt = this.agentProgressAtBySessionId.get(oldSessionId)
+            const existed = this.forgetSession(oldSessionId)
             if (existed) {
                 this.publisher.emit({ type: 'session-removed', sessionId: oldSessionId, namespace })
             }
-            this.lastBroadcastAtBySessionId.delete(oldSessionId)
-            this.todoBackfillAttemptedSessionIds.delete(oldSessionId)
             // The merged history is the new row's progress too — carry the
             // clock over so a resume-rotated id does not start out stale.
-            const oldProgressAt = this.agentProgressAtBySessionId.get(oldSessionId)
             if (oldProgressAt !== undefined) {
                 this.recordAgentProgress(newSessionId, oldProgressAt)
             }
-            this.agentProgressAtBySessionId.delete(oldSessionId)
         } else {
             this.refreshSession(oldSessionId)
         }

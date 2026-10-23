@@ -270,7 +270,7 @@ export function useSessionActions(
             if (!api || !sessionId) {
                 throw new Error('Session unavailable')
             }
-            await api.deleteSession(sessionId)
+            await api.deleteSession(sessionId, { stop: true })
         },
         onSuccess: async () => {
             if (!sessionId) return

@@ -619,6 +619,14 @@ export class ApiClient {
         })
     }
 
+    async archiveIdleSession(sessionId: string): Promise<boolean> {
+        const result = await this.request<{ ok: true; skipped: boolean }>(
+            `/api/sessions/${encodeURIComponent(sessionId)}/archive?onlyIfIdle=true`,
+            { method: 'POST', body: JSON.stringify({}) }
+        )
+        return !result.skipped
+    }
+
     async reopenSession(sessionId: string): Promise<ReopenSessionResponse> {
         return await this.request<ReopenSessionResponse>(
             `/api/sessions/${encodeURIComponent(sessionId)}/reopen`,
@@ -1031,8 +1039,9 @@ export class ApiClient {
         })
     }
 
-    async deleteSession(sessionId: string): Promise<void> {
-        await this.request(`/api/sessions/${encodeURIComponent(sessionId)}`, {
+    async deleteSession(sessionId: string, options?: { stop?: boolean }): Promise<void> {
+        const query = options?.stop ? '?stop=true' : ''
+        await this.request(`/api/sessions/${encodeURIComponent(sessionId)}${query}`, {
             method: 'DELETE'
         })
     }

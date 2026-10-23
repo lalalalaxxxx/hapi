@@ -107,9 +107,9 @@ for request/response shapes and error semantics, and `src/web/routes/` for all e
 - `POST /api/sessions/:id/clear` - Start a fresh conversation when supported.
 - `POST /api/sessions/:id/upload` - Upload file (base64, max 50MB).
 - `POST /api/sessions/:id/upload/delete` - Delete uploaded file.
-- `POST /api/sessions/:id/archive` - Archive active session.
+- `POST /api/sessions/:id/archive` - Archive active session. `?onlyIfIdle=true` checks current idle/work/queue state before stopping and returns `{ok: true, skipped: boolean}`.
 - `PATCH /api/sessions/:id` - Rename session.
-- `DELETE /api/sessions/:id` - Delete inactive session.
+- `DELETE /api/sessions/:id` - Delete inactive session. `?stop=true` first stops active or stale-running sessions; a failed stop retains the record.
 - `GET /api/sessions/:id/slash-commands` - List slash commands.
 - `GET /api/sessions/:id/skills` - List skills.
 - `POST /api/sessions/:id/permission-mode` - Set permission mode.
@@ -265,6 +265,18 @@ Keep-alives prove a socket, not an agent. A session can therefore heartbeat for 
 - Progress means a message in either direction, a queued prompt, or a background task - never a keep-alive. Sessions that are thinking, running background tasks or holding a pending permission request are never marked.
 - `idle` reverts to `running` on the next progress, within one tick.
 - `metadata.idleReconcileExempt: true` opts a session out entirely.
+
+The web directory header offers **Clean up idle sessions** to stop processes
+for sessions marked `idle`, or disconnected rows still marked `running`.
+The hub rechecks thinking, background work, pending permission requests and
+uninvoked input (including scheduled messages) before stopping each session.
+History and native session IDs are retained; **Reopen** resumes the conversation.
+This is a manual operation; keepalive-idle reconciliation alone does not kill processes.
+
+**Delete this directory from HAPI** stops and deletes its sessions, including
+hidden rows and worktree sessions on the same machine. It removes conversation
+history and scratchlists, but leaves the directory and source files on disk.
+Failed sessions remain visible and can be retried.
 
 ## Storage
 

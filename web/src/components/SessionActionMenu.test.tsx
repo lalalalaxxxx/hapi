@@ -155,6 +155,13 @@ describe('SessionActionMenu - positioning', () => {
 })
 
 describe('SessionActionMenu - Reopen action', () => {
+    it('offers direct deletion of an active session', () => {
+        const onDelete = vi.fn()
+        renderMenu({ sessionActive: true, onDelete })
+        fireEvent.click(screen.getByRole('menuitem', { name: /Delete/ }))
+        expect(onDelete).toHaveBeenCalledTimes(1)
+    })
+
     it('renders the Reopen item on inactive sessions when onReopen is provided', () => {
         renderMenu({ sessionActive: false })
 

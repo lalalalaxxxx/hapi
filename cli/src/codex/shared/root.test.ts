@@ -53,7 +53,7 @@ afterEach(async () => {
     finally { vi.useRealTimers(); }
 });
 
-async function fixture(opts?: { hubArchived?: boolean; end?: RootHost['end'] }) {
+async function fixture(opts?: { hubArchived?: boolean; end?: RootHost['end']; allowCloseFailure?: boolean }) {
     const directory = await mkdtemp('/tmp/hapi-shared-root-');
     let state: AgentState = { steeringActive: true };
     let metadata: Metadata = { path: directory, host: 'test', flavor: 'codex' };
@@ -83,7 +83,11 @@ async function fixture(opts?: { hubArchived?: boolean; end?: RootHost['end'] }) 
         create: async () => { throw new Error('Unexpected root creation'); },
         end
     } satisfies RootHost);
-    cleanups.push(async () => { await root.close(false); await rm(directory, { recursive: true, force: true }); });
+    cleanups.push(async () => {
+        try { await root.close(false); }
+        catch (error) { if (!opts?.allowCloseFailure) throw error; }
+        finally { await rm(directory, { recursive: true, force: true }); }
+    });
     await root.prepare();
     await root.bind('thread', { model: 'mock', thread: { turns: [] } }, false);
     const native = root.client as unknown as {
@@ -116,6 +120,26 @@ async function completePlan(f: Awaited<ReturnType<typeof fixture>>, status = 'co
 }
 
 describe('shared plan actions', () => {
+    it('releases the bridge and hub socket even when the final hub flush fails', async () => {
+        const { root } = await fixture({ allowCloseFailure: true });
+        const stop = vi.spyOn(root.bridge.server, 'stop');
+        const close = vi.spyOn(root.session, 'close');
+        vi.spyOn(root.session, 'flush').mockRejectedValue(new Error('hub unavailable'));
+
+        await expect(root.close(true)).rejects.toThrow('hub unavailable');
+        await expect(root.close(true)).rejects.toThrow('hub unavailable');
+        expect(stop).toHaveBeenCalledTimes(1);
+        expect(close).toHaveBeenCalledTimes(1);
+        expect(root.client.isInitialized()).toBe(false);
+    });
+
+    it('preserves uploads for a suspended root so it can be resumed', async () => {
+        const { root } = await fixture();
+        const death = vi.spyOn(root.session, 'sendSessionDeath');
+        await root.close(false);
+        expect(death).toHaveBeenCalledWith(undefined, { preserveUploads: true });
+    });
+
     it('applies remote change_title as metadata.name then lets native terminal rename win', async () => {
         const f = await fixture();
         const item = { id: 'title', type: 'mcpToolCall', server: 'hapi', tool: 'change_title',

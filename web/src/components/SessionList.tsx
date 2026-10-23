@@ -14,6 +14,7 @@ import { useLongPress } from '@/hooks/useLongPress'
 import { usePlatform } from '@/hooks/usePlatform'
 import { useSessionActions } from '@/hooks/mutations/useSessionActions'
 import { SessionActionMenu } from '@/components/SessionActionMenu'
+import { DirectoryActionButtons, DirectoryActionDialog, type DirectoryAction } from '@/components/DirectorySessionActions'
 import { SessionExportDialog } from '@/components/SessionExportDialog'
 import { RenameSessionDialog } from '@/components/RenameSessionDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -1246,6 +1247,8 @@ export function SessionList(props: {
     const [customStart, setCustomStart] = useState('')
     const [customEnd, setCustomEnd] = useState('')
     const [markAllReadOpen, setMarkAllReadOpen] = useState(false)
+    const [directoryAction, setDirectoryAction] = useState<DirectoryAction | null>(null)
+    const [directoryNotice, setDirectoryNotice] = useState<string | null>(null)
     const [, setCodexImportedSessionsVersion] = useState(0)
     const normalizedQuery = normalizeSearch(searchQuery)
     const timeRange = getSessionTimeRange(customStart, customEnd)
@@ -1595,6 +1598,19 @@ export function SessionList(props: {
         )
     }
 
+    const directoryActionButtons = (group: SessionGroup) => api && group.directory !== 'Other' ? (
+        <DirectoryActionButtons onAction={kind => setDirectoryAction({
+            kind,
+            directory: group.directory,
+            // Include pinned, deduplicated and search-hidden rows, but never a
+            // matching path on another machine. Worktrees belong to their base.
+            sessions: props.sessions.filter(session => (
+                (session.metadata?.machineId ?? null) === group.machineId
+                && (session.metadata?.worktree?.basePath ?? session.metadata?.path) === group.directory
+            ))
+        })} />
+    ) : null
+
     const renderActionOnlyGroupHeader = (group: SessionGroup) => {
         // With multiple machines in the unfiltered view, disambiguate
         // same-named directories by suffixing the machine label.
@@ -1611,6 +1627,7 @@ export function SessionList(props: {
                         {groupTitle}
                     </span>
                     <CopyPathButton path={group.directory} className="opacity-0 group-hover/project:opacity-100 transition-opacity duration-150" />
+                    {directoryActionButtons(group)}
                     {onNewSessionInDirectory && group.directory !== 'Other' ? (
                         <button
                             type="button"
@@ -1667,6 +1684,7 @@ export function SessionList(props: {
                         {groupTitle}
                     </span>
                     <CopyPathButton path={group.directory} className="opacity-0 group-hover/project:opacity-100 transition-opacity duration-150" />
+                    {directoryActionButtons(group)}
                     {onNewSessionInDirectory && canStartInGroupDirectory ? (
                         <button
                             type="button"
@@ -2120,6 +2138,15 @@ export function SessionList(props: {
             </SessionListScrollAnchor>
             </div>
             </div>
+            {directoryAction && api ? <DirectoryActionDialog
+                action={directoryAction}
+                api={api}
+                onClose={() => setDirectoryAction(null)}
+                onComplete={result => setDirectoryNotice(directoryAction.kind === 'cleanup'
+                    ? t('sessions.directory.cleanupResult', result)
+                    : null)}
+            /> : null}
+            {directoryNotice ? <p role="status" className="px-3 py-2 text-sm text-[var(--app-hint)]">{directoryNotice}</p> : null}
             <ConfirmDialog
                 isOpen={markAllReadOpen}
                 onClose={() => setMarkAllReadOpen(false)}

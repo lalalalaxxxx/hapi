@@ -70,7 +70,9 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
     };
     let finish!: () => void;
     const done = new Promise<void>(resolve => { finish = resolve; });
-    const ending = new Set<SharedCodexRoot>();
+    // Ended roots contain transcripts, queues and socket clients. Sibling roots
+    // can keep this runtime alive indefinitely, so this guard must not own them.
+    const ending = new WeakSet<SharedCodexRoot>();
     const roots = new Map<string, SharedCodexRoot>();
     const prepared = new Set<SharedCodexRoot>();
     const reservations = new Map<string, Reservation>();
@@ -160,11 +162,16 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         runtime.sessions[root.session.sessionId].active = false; await persist();
         // Let the RPC acknowledgement leave both gateway and hub sockets before detach.
         setTimeout(() => {
-            void root.close(true).then(async () => {
-                prepared.delete(root);
-                await notifyRunnerSessionStarted(root.session.sessionId, { ...root.bootstrap.metadata, lifecycleState: 'archived' });
-                if (roots.size === 0 && reservations.size === 0) await shutdown();
-            }).catch(error => logger.debug('[Codex shared] root cleanup', error));
+            void (async () => {
+                try {
+                    await root.close(true);
+                    await notifyRunnerSessionStarted(root.session.sessionId, { ...root.bootstrap.metadata, lifecycleState: 'archived' });
+                } finally {
+                    prepared.delete(root);
+                    nativeSettings.delete(root.threadId);
+                    if (roots.size === 0 && reservations.size === 0) await shutdown();
+                }
+            })().catch(error => logger.debug('[Codex shared] root cleanup', error));
         }, 100);
     };
     const prepare = async (cwd: string, existingSessionId?: string, parent?: SharedCodexRoot): Promise<SharedCodexRoot> => {

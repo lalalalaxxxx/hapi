@@ -450,6 +450,11 @@ export function createSessionsRoutes(getSyncEngine: () => SyncEngine | null): Ho
             return sessionResult
         }
 
+        if (c.req.query('onlyIfIdle') === 'true') {
+            const archived = await engine.archiveIdleSession(sessionResult.sessionId)
+            return c.json({ ok: true, skipped: !archived })
+        }
+
         const lifecycleState = sessionResult.session.metadata?.lifecycleState
         if (!sessionResult.session.active && lifecycleState === 'archived') {
             return c.json({ ok: true, alreadyArchived: true })
@@ -938,17 +943,24 @@ export function createSessionsRoutes(getSyncEngine: () => SyncEngine | null): Ho
             return sessionResult
         }
 
-        if (sessionResult.session.active) {
+        const stopBeforeDelete = c.req.query('stop') === 'true'
+        if (sessionResult.session.active && !stopBeforeDelete) {
             return c.json({ error: 'Cannot delete active session. Archive it first.' }, 409)
         }
 
         try {
+            if (stopBeforeDelete && (sessionResult.session.active
+                || isLiveLifecycleState(sessionResult.session.metadata?.lifecycleState))) {
+                // Keep the row and transcript when process termination cannot
+                // be confirmed; deleteSession rechecks activity before removal.
+                await engine.archiveSession(sessionResult.sessionId)
+            }
             await engine.deleteSession(sessionResult.sessionId)
             return c.json({ ok: true })
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to delete session'
             // Map "active session" error to 409 conflict (race condition: session became active)
-            if (message.includes('active')) {
+            if (message.includes('active') || message.includes('still running')) {
                 return c.json({ error: message }, 409)
             }
             return c.json({ error: message }, 500)

@@ -571,11 +571,18 @@ export class SharedCodexRoot {
         return this.closing ??= (async () => {
             this.stopAccepting(); this.closed = true; clearInterval(this.heartbeat);
             this.permissions?.close();
-            await this.client.disconnect(); await this.notifications; await this.queue?.flush(); this.bridge?.server.stop();
-            if (archived) this.session.updateMetadata(metadata => ({ ...metadata, lifecycleState: 'archived', lifecycleStateSince: Date.now() }));
-            // Inactive is resumable; uploads referenced by pending input must survive.
-            this.session.sendSessionDeath(undefined, { preserveUploads: !archived });
-            await this.session.flush(); this.session.close();
+            try {
+                await this.client.disconnect(); await this.notifications; await this.queue?.flush();
+                if (archived) this.session.updateMetadata(metadata => ({ ...metadata, lifecycleState: 'archived', lifecycleStateSince: Date.now() }));
+                // Inactive is resumable; uploads referenced by pending input must survive.
+                this.session.sendSessionDeath(undefined, { preserveUploads: !archived });
+                await this.session.flush();
+            } finally {
+                // A failed queue/hub flush must not keep the MCP listener and
+                // reconnecting hub socket alive after this root has ended.
+                try { this.bridge?.server.stop(); }
+                finally { this.session.close(); }
+            }
         })();
     }
 }
