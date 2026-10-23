@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
     agyModelsLoading: false,
     agyModels: [{ modelId: 'gemini-3.6-flash-low', name: 'Gemini 3.6 Flash (Low)' }],
     directoryExists: undefined as boolean | undefined,
+    directorySuggestions: [] as string[],
     copilotModels: [] as Array<{ modelId: string; name?: string }>,
     copilotModelsLoading: false,
     kimiModels: [] as Array<{ modelId: string; name?: string; provider?: string }>,
@@ -69,13 +70,16 @@ vi.mock('@/hooks/useRecentPaths', () => ({
         setLastUsedMachineId: vi.fn()
     })
 }))
-vi.mock('@/hooks/useMachinePathsExists', () => ({
-    useMachinePathsExists: () => ({
-        pathExistence: { 'C:\\repo': mocks.directoryExists },
-        outsideWorkspaceRoots: new Set<string>(),
-        checkPathsExists: mocks.checkPathsExists
-    })
-}))
+vi.mock('@/hooks/useMachinePathsExists', async () => {
+    const { useMemo } = await import('react')
+    return {
+        useMachinePathsExists: () => ({
+            pathExistence: useMemo(() => ({ 'C:\\repo': mocks.directoryExists }), [mocks.directoryExists]),
+            outsideWorkspaceRoots: new Set<string>(),
+            checkPathsExists: mocks.checkPathsExists
+        })
+    }
+})
 vi.mock('@/hooks/queries/useAgentAvailability', () => ({
     useAgentAvailability: () => ({
         agents: mocks.availableAgents,
@@ -86,10 +90,7 @@ vi.mock('@/hooks/queries/useAgentAvailability', () => ({
     })
 }))
 vi.mock('@/hooks/useDirectorySuggestions', () => ({
-    useDirectorySuggestions: () => []
-}))
-vi.mock('@/hooks/useActiveSuggestions', () => ({
-    useActiveSuggestions: () => [[], -1, vi.fn(), vi.fn(), vi.fn()]
+    useDirectorySuggestions: () => mocks.directorySuggestions
 }))
 vi.mock('@/hooks/queries/useCodexModels', () => ({
     useCodexModels: () => ({
@@ -199,7 +200,6 @@ vi.mock('@/components/PiSessionImportDialog', () => ({
         </>
     ) : null
 }))
-vi.mock('./DirectorySection', () => ({ DirectorySection: () => null }))
 vi.mock('./MachineSelector', () => ({
     MachineSelector: (props: { machines: Machine[]; machineId: string | null; isDisabled: boolean; onChange: (machineId: string) => void }) => (
         <select
@@ -329,6 +329,36 @@ describe('NewSession launch preferences', () => {
         mocks.refetchSessions.mockResolvedValue(undefined)
         mocks.addToast.mockReset()
         savePreferredAgent('codex')
+    })
+
+    it('browses children repeatedly from a drive without launching a session', async () => {
+        const listMachineDirectory = vi.fn(async (_machineId: string, path: string) => ({
+            success: true,
+            entries: (path === 'G:\\' ? ['Code'] : path === 'G:\\Code\\' ? ['QQSpeed'] : [])
+                .map(name => ({ name, type: 'directory' as const }))
+        }))
+        render(<NewSession api={{ listMachineDirectory } as unknown as ApiClient}
+            machines={[{ ...machine, active: true }]} initialMachineId="machine-1"
+            initialDirectory="" onSuccess={mocks.onSuccess} onCancel={() => {}} />)
+        const input = screen.getByPlaceholderText('newSession.placeholder')
+        fireEvent.focus(input)
+        fireEvent.change(input, { target: { value: 'G:' } })
+        fireEvent.click(await screen.findByRole('button', { name: 'G:\\Code\\' }))
+        expect(input).toHaveValue('G:\\Code\\')
+        fireEvent.click(await screen.findByRole('button', { name: 'G:\\Code\\QQSpeed\\' }))
+        expect(input).toHaveValue('G:\\Code\\QQSpeed\\')
+        await waitFor(() => expect(listMachineDirectory).toHaveBeenCalledWith('machine-1', 'G:\\Code\\QQSpeed\\'))
+        expect(mocks.spawnSession).not.toHaveBeenCalled()
+    })
+
+    it('does not browse an offline machine', async () => {
+        const listMachineDirectory = vi.fn()
+        render(<NewSession api={{ listMachineDirectory } as unknown as ApiClient}
+            machines={[{ ...machine, active: false }]} initialMachineId="machine-1"
+            initialDirectory="G:\\" onSuccess={mocks.onSuccess} onCancel={() => {}} />)
+        fireEvent.focus(screen.getByPlaceholderText('newSession.placeholder'))
+        await act(async () => {})
+        expect(listMachineDirectory).not.toHaveBeenCalled()
     })
 
     it('hides unavailable Agents and falls back to the first available Agent', async () => {

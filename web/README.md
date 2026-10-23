@@ -118,7 +118,12 @@ See `src/router.tsx` for route definitions.
 Modular session creation:
 
 - Machine selector
-- Directory input with recent paths
+- Directory input with recent paths and live child-directory completion from the selected online machine.
+  Enter a Windows drive (`G:` or `G:\`), an absolute directory, or a partial child name;
+  choose a suggestion to fill the path and continue browsing its children.
+  Windows drive/UNC paths and POSIX paths are supported. Only folders are suggested,
+  and configured Runner workspace roots still apply. Recent paths remain available
+  when the machine cannot be reached. No directories are created by autocomplete.
 - Agent type selector
 - Model selector
 - Per-agent permission, effort, and collaboration controls when supported
@@ -143,6 +148,9 @@ See `src/hooks/useAuth.ts` and `src/hooks/useAuthSource.ts`.
 - Telegram Mini App: Uses initData from WebApp SDK.
 - Browser: Uses CLI_API_TOKEN from login prompt.
 - JWT tokens with auto-refresh.
+- Authentication has a 15-second deadline, including response body reads. A stalled
+  browser login returns to the login screen with a network/Hub URL error instead
+  of staying on the authentication spinner. Existing access tokens are retained.
 
 ## Data fetching
 

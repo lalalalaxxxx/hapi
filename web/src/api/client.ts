@@ -222,20 +222,33 @@ export class ApiClient {
     }
 
     async authenticate(auth: { initData: string } | { accessToken: string }): Promise<AuthResponse> {
-        const res = await fetch(this.buildUrl('/api/auth'), {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(auth)
-        })
+        const controller = new AbortController()
+        // Bound both the connection and response body so startup can return to login.
+        const timeout = setTimeout(() => controller.abort(), 15_000)
+        try {
+            const res = await fetch(this.buildUrl('/api/auth'), {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(auth),
+                signal: controller.signal
+            })
 
-        if (!res.ok) {
-            const body = await res.text().catch(() => '')
-            const code = parseErrorCode(body)
-            const detail = body ? `: ${body}` : ''
-            throw new ApiError(`Auth failed: HTTP ${res.status} ${res.statusText}${detail}`, res.status, code, body || undefined)
+            if (!res.ok) {
+                const body = await res.text().catch(() => '')
+                const code = parseErrorCode(body)
+                const detail = body ? `: ${body}` : ''
+                throw new ApiError(`Auth failed: HTTP ${res.status} ${res.statusText}${detail}`, res.status, code, body || undefined)
+            }
+
+            return await res.json() as AuthResponse
+        } catch (error) {
+            if (controller.signal.aborted) {
+                throw new Error('Authentication timed out after 15 seconds. Check the Hub URL and network connection, then sign in again.')
+            }
+            throw error
+        } finally {
+            clearTimeout(timeout)
         }
-
-        return await res.json() as AuthResponse
     }
 
     async bind(auth: { initData: string; accessToken: string }): Promise<AuthResponse> {

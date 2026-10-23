@@ -50,6 +50,7 @@ import { PiImportActions } from './PiImportActions'
 import { clearBatchImportedCodexSelection, resolveCodexImportRedirectSessionId } from './codexImportMerge'
 import { AgyModelSelector } from './AgyModelSelector'
 import { DirectorySection } from './DirectorySection'
+import { getDirectoryCompletions, isDirectoryCompletion } from './directoryCompletions'
 import { CopilotAgentModeSelector } from './CopilotAgentModeSelector'
 import { FastModeSelector } from './FastModeSelector'
 import { MachineSelector } from './MachineSelector'
@@ -1003,16 +1004,10 @@ export function NewSession(props: {
     }, [machineId, sessionType, trimmedDirectory])
 
     const getSuggestions = useCallback(async (query: string): Promise<Suggestion[]> => {
-        const lowered = query.toLowerCase()
-        return verifiedPaths
-            .filter((path) => path.toLowerCase().includes(lowered))
-            .slice(0, 8)
-            .map((path) => ({
-                key: path,
-                text: path,
-                label: path
-            }))
-    }, [verifiedPaths])
+        return getDirectoryCompletions(query, verifiedPaths, machineId && selectedMachine?.active
+            ? (path) => props.api.listMachineDirectory(machineId, path)
+            : undefined)
+    }, [verifiedPaths, machineId, selectedMachine?.active, props.api])
 
     const activeQuery = (!isDirectoryFocused || suppressSuggestions) ? null : directory
 
@@ -1480,7 +1475,7 @@ export function NewSession(props: {
         if (suggestion) {
             setDirectory(suggestion.text)
             clearSuggestions()
-            setSuppressSuggestions(true)
+            setSuppressSuggestions(!isDirectoryCompletion(suggestion))
         }
     }, [suggestions, clearSuggestions])
 
