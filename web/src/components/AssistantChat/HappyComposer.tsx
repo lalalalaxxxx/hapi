@@ -2207,7 +2207,7 @@ export function HappyComposer(props: {
 
     return (
         <ComposerParkingContext.Provider value={isParkingScratchlist}>
-        <div className={shellClassName} data-testid="composer-shell" data-expanded={isExpanded || undefined}>
+        <div className={shellClassName} data-testid="composer-shell" data-runner-pet-avoid data-expanded={isExpanded || undefined}>
             <div className={innerClassName}>
                 <ComposerPrimitive.Root className={rootClassName} onSubmit={handleSubmit}>
                     {overlays}

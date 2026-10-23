@@ -1,0 +1,59 @@
+{
+  "source": "Original native-generated art with optical-flow interpolation",
+  "animations": {
+    "idle": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 458528
+    },
+    "tap": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 460486
+    },
+    "happy": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 448800
+    },
+    "bored": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 459622
+    },
+    "celebrate": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 467926
+    },
+    "working": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 424426
+    },
+    "waiting": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 436670
+    },
+    "offline": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 450774
+    },
+    "drag": {
+      "frames": 48,
+      "durationMs": 2000,
+      "fps": 24,
+      "bytes": 452686
+    }
+  }
+}

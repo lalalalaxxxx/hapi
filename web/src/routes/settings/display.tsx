@@ -11,6 +11,7 @@ import { MAX_SESSION_PREVIEW_LIMIT, MIN_SESSION_PREVIEW_LIMIT, normalizeSessionP
 import { useThemeColors, type ThemeColorKeyId } from '@/hooks/useThemeColors'
 import { useSessionHeaderMetadata, type SessionHeaderMetadataKey } from '@/hooks/useSessionHeaderMetadata'
 import { useAppBadgePreference } from '@/hooks/useAppBadgePreference'
+import { useRunnerPetVoicePreference } from '@/hooks/useRunnerPetVoicePreference'
 import { useRunnerPetPreference } from '@/hooks/useRunnerPetPreference'
 import { useOpenExternalLinksInNewTab } from '@/hooks/useOpenExternalLinksInNewTab'
 import { SettingsChoiceGroup, SettingsFieldLabel, SettingsPageContent, SettingsRow, SettingsSection, SettingsSwitch } from '@/components/settings/SettingsPrimitives'
@@ -142,6 +143,7 @@ export default function SettingsDisplayPage() {
     const { showActiveSessionsOnly, setShowActiveSessionsOnly } = useShowActiveSessionsOnly()
     const { pinInProgressSessions, setPinInProgressSessions } = usePinInProgressSessions()
     const { appBadgeEnabled, setAppBadgeEnabled } = useAppBadgePreference()
+    const { runnerPetVoiceEnabled, setRunnerPetVoiceEnabled } = useRunnerPetVoicePreference()
     const { runnerPetEnabled, setRunnerPetEnabled } = useRunnerPetPreference()
     const { openExternalLinksInNewTab, setOpenExternalLinksInNewTab } = useOpenExternalLinksInNewTab()
     const { preferences: sessionHeaderMetadata, setPreference: setSessionHeaderMetadata } = useSessionHeaderMetadata()
@@ -171,6 +173,7 @@ export default function SettingsDisplayPage() {
                 <ColorThemePicker />
                 <ThemeColorControls />
                 <SettingsSwitch label={t('runner.pet.setting')} description={t('runner.pet.settingDescription')} checked={runnerPetEnabled} onChange={setRunnerPetEnabled} />
+                <SettingsSwitch label={t('runner.pet.voice')} description={t('runner.pet.voiceDescription')} checked={runnerPetVoiceEnabled} onChange={setRunnerPetVoiceEnabled} />
             </SettingsSection>
 
             <SettingsSection title={t('settings.display.typography')}>

@@ -16,12 +16,72 @@ React Mini App / PWA for monitoring and controlling hapi sessions.
 - File browser and git status/diff views.
 - PWA install prompt and offline banner.
 - Optional unread-session count on the Windows taskbar when installed as an Edge/Chrome PWA (toggleable in Display settings; off by default).
-- A dot-matrix Runner companion reflects online, busy, and pending-input states.
-  Click it to inspect Runner counts, choose a machine, or give it a pat. Hide it
+- An animated Runner companion reflects online, busy, and pending-input states.
+  Its floating button shows only the transparent character. Click it to inspect
+  Runner counts, choose a machine, or give it a pat; drag it to reposition it.
+  Mouse and touch dragging play a separate reaction and never open the panel.
+  The saved position follows viewport changes; arrow keys also move the focused pet. Hide it
   from its panel and restore it in Display settings. It reuses existing SSE/query
   data, pauses animation in hidden tabs, and respects reduced-motion preferences.
-  It stays by the session sidebar on desktop and only appears on the session
-  list on phones, keeping the chat composer clear.
+  It appears on the session list and inside chats on both desktop and phones.
+  The visual viewport and `data-runner-pet-avoid` composer bounds keep it clear
+  of the editor and keyboard. It shrinks in tight spaces; only a fully occupied
+  viewport temporarily hides it, until room is available again.
+
+### Runner companion artwork
+
+The companion has nine animations: idle, tap, happy,
+bored, celebrate, working, waiting, offline, and drag. All follow the original
+approved character concept (kept locally at `output/imagegen/runner-pet-concept-v1.png`), with
+natural gestures and hair movement. Connecting reuses the waiting animation.
+Status labels and counts continue to reflect real Runner data.
+Each loop runs for 2 seconds with 48 playback frames (24 fps). Clicking plays
+tap for 2 seconds and a happy response for 2 seconds. Idle
+becomes bored after 45 seconds. Only an explicit `Task completed` notification
+for an active session on an online selected Runner triggers a 2-second
+celebration; a failure, pause, or disconnection does not.
+
+Original art sources and prompts are kept locally in
+`output/imagegen/runner-pet-animation-v1/raw/`; these generation artifacts are
+not included in Git. The six-frame atlases, animated loops, and static posters
+under `web/public/pets/` are committed and sufficient to build the application.
+Run `python scripts/dev/runner-pet-assets.py` with Pillow installed to split
+the 3-by-2 sheets, clean negligible alpha noise, align grounded poses, and write
+six-frame horizontal WebP atlases to `web/public/pets/runner-v1/`. The script
+also creates animated WebP previews and, with `imageio-ffmpeg`, an MP4 overview.
+It processes existing images only and makes no generation/API requests.
+Then run `python scripts/dev/runner-pet-smooth.py` with Pillow, numpy and
+opencv-python-headless to create animated WebP loops and static posters under
+`web/public/pets/runner-v2/`. This uses optical-flow interpolation between the
+existing six generated poses, not 48 separately drawn poses. The tap sequence
+returns through a matching pose instead of the original abrupt bow. Occlusion
+handling limits double edges, but complex hand movement can retain some drawing
+variation. Hidden tabs and reduced-motion mode show a static poster.
+Animation timing lives in `src/components/RunnerPet/animations.ts`.
+Preview the widget at
+`/e2e-fixtures/runner-pet-fixture.html` on the Web development server.
+
+### Runner companion voice
+
+Three bundled Mandarin MP3 clips in `public/pets/voice-v1/` respond to clicking
+or starting a drag (啊，不要啦), validated task completion
+(终于做完啦，快来看看吧～), and each full minute spent bored
+(快来陪我玩玩吧). The first reminder is 60 seconds after entering boredom.
+Voice defaults on; the panel and Display settings share a persistent mute switch.
+Browser autoplay policy requires an initial user gesture. Missed lines are never
+queued. Hidden/unfocused pages stop audio; completion takes priority over other
+lines, and rapid interactions have a 3-second cooldown. Clips are precached for
+offline playback, with no microphone or runtime speech API calls.
+
+The bundled voice uses locally generated Qwen3-TTS Vivian, with separate emotion
+instructions for bashful interaction, proud celebration, and playful requests for
+company. `scripts/dev/runner-pet-voice-qwen.py` records the text and instructions;
+run it with `--model <local CustomVoice model> --output <folder> --speakers Vivian`.
+It needs `qwen-tts` and CUDA PyTorch in an isolated Python environment. Convert the
+resulting WAV files to 24 kHz/96 kbps MP3 with FFmpeg (`loudnorm=I=-18:TP=-1.5:LRA=11`).
+`scripts/dev/runner-pet-voice.py` preserves the earlier Edge speech experiment.
+The local generation and bundled playback require no paid speech API and are
+independent of HAPI's conversational/dictation voice configuration.
 
 ## Runtime behavior
 

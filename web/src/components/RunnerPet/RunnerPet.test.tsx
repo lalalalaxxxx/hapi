@@ -19,7 +19,7 @@ describe('Runner companion interactions', () => {
         expect(screen.getByRole('dialog', { name: 'runner.pet.title' })).toBeInTheDocument()
         fireEvent.click(screen.getByRole('button', { name: 'runner.pet.pat' }))
         expect(screen.getByRole('status')).toHaveTextContent('runner.pet.happy')
-        act(() => { vi.advanceTimersByTime(1200) })
+        act(() => { vi.advanceTimersByTime(4000) })
         expect(screen.getByRole('status')).toHaveTextContent('runner.pet.message.idle')
         fireEvent.click(screen.getByRole('button', { name: 'runner.pet.hide' }))
         expect(hide).toHaveBeenCalledOnce()

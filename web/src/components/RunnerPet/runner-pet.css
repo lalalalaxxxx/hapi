@@ -6,38 +6,29 @@
 }
 .runner-pet {
     position: fixed;
-    right: max(16px, env(safe-area-inset-right));
-    bottom: calc(24px + env(safe-area-inset-bottom));
     z-index: 35;
+    pointer-events: none;
 }
 .runner-pet [data-mood="waiting"], .runner-pet-scene[data-mood="waiting"] { color: #ad761b; }
 .runner-pet [data-mood="offline"], .runner-pet-scene[data-mood="offline"],
 .runner-pet [data-mood="connecting"], .runner-pet-scene[data-mood="connecting"] { color: #7e8a9e; }
 .runner-pet-trigger {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    width: 72px;
-    border: 1px solid var(--app-border);
-    border-radius: 24px;
-    background: var(--app-bg);
-    box-shadow: 0 4px 18px #0000000d;
-    cursor: pointer;
-    padding: 2px 4px 9px;
-    transition: box-shadow 160ms, transform 160ms;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
 }
-.runner-pet-trigger:hover { box-shadow: 0 6px 24px #00000018; transform: translateY(-2px); }
-.runner-pet-label { font-size: 10px; line-height: 1.3; color: var(--app-hint); }
-.runner-pet-sprite { width: 64px; height: 64px; overflow: visible; }
-.runner-pet-body { transform-origin: 50px 82px; animation: runner-pet-breathe 4s ease-in-out infinite; }
-.runner-pet-eyes { transform-origin: 50px 49px; animation: runner-pet-blink 7s linear infinite; }
-.runner-pet-shadow { fill: currentColor; opacity: .12; }
-[data-mood="working"] .runner-pet-body { animation: runner-pet-work 1.1s ease-in-out infinite; }
-[data-mood="offline"] .runner-pet-body { animation-duration: 6s; }
-[data-mood="offline"] .runner-pet-eyes, [data-happy] .runner-pet-eyes { animation: none; }
-[data-happy] .runner-pet-body { animation: runner-pet-hop .6s ease-in-out 2; }
-.runner-pet-spark { animation: runner-pet-breathe 2s ease-in-out infinite; transform-origin: 86px 17px; }
-.runner-pet-heart { animation: runner-pet-heart 1.2s ease-out both; }
+.runner-pet[data-dragging] .runner-pet-trigger { cursor: grabbing; }
+.runner-pet-sprite { display: block; position: relative; width: 100%; aspect-ratio: 2 / 3; contain: layout paint; }
+.runner-pet-image { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; pointer-events: none; }
 .runner-pet-panel {
     z-index: 40;
     width: min(292px, calc(100vw - 24px));
@@ -57,7 +48,7 @@
 .runner-pet-close:hover { background: var(--app-subtle-bg); }
 .runner-pet-scene { position: relative; display: flex; flex-direction: column; align-items: center; background: var(--app-subtle-bg); border-radius: 16px; margin: 14px 0; padding: 12px 8px 14px; }
 .runner-pet-pat { display: block; cursor: pointer; border-radius: 24px; }
-.runner-pet-pat .runner-pet-sprite { width: 112px; height: 112px; }
+.runner-pet-pat .runner-pet-sprite { width: 168px; }
 .runner-pet-scene p { text-align: center; font-size: 12px; color: var(--app-fg); min-height: 32px; max-width: 210px; margin-top: 4px; }
 .runner-pet-scene-dot { position: absolute; border-radius: 50%; background: currentColor; opacity: .2; width: 4px; height: 4px; }
 .runner-pet-scene-dot-a { left: 27px; top: 31px; }
@@ -73,15 +64,7 @@
 .runner-pet-restore { color: var(--app-hint); font-size: 10px; margin-top: 9px; }
 .runner-pet button:focus-visible, .runner-pet-panel button:focus-visible, .runner-pet-panel a:focus-visible { outline: 2px solid var(--app-link); outline-offset: 3px; }
 .runner-pet[data-paused] *, .runner-pet-scene[data-paused] * { animation-play-state: paused !important; }
-/* Desktop: stay over the session sidebar, away from the chat composer.
-   On phones the widget appears only on the session list. */
-@media (min-width: 920px) { .runner-pet { right: auto; left: max(16px, env(safe-area-inset-left)); } }
-@media (max-width: 919px) { .runner-pet-desktop-only .runner-pet { display: none; } }
+/* Position and size follow the visual viewport and measured composer bounds. */
 @media (prefers-reduced-motion: reduce) {
     .runner-pet *, .runner-pet-panel * { animation: none !important; transition: none !important; }
 }
-@keyframes runner-pet-breathe { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.025, .975); } }
-@keyframes runner-pet-blink { 0%, 42%, 46%, 100% { transform: scaleY(1); } 44% { transform: scaleY(.12); } }
-@keyframes runner-pet-work { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(4deg) translateY(-4px); } }
-@keyframes runner-pet-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px); } 75% { transform: scale(1.05, .95); } }
-@keyframes runner-pet-heart { from { opacity: 0; transform: translateY(8px); } 25% { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }

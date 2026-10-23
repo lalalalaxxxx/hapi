@@ -37,6 +37,7 @@ import { ReconnectingBanner } from '@/components/ReconnectingBanner'
 import { VoiceErrorBanner } from '@/components/VoiceErrorBanner'
 import { RunnerVersionSkewBanner } from '@/components/RunnerVersionSkewBanner'
 import { RunnerPetWidget } from '@/components/RunnerPet'
+import { notifyRunnerPetToast } from '@/lib/runnerPetEvents'
 import { LoadingState } from '@/components/LoadingState'
 import { ToastContainer } from '@/components/ToastContainer'
 import { PwaUpdateProvider } from '@/lib/pwa-update-context'
@@ -383,6 +384,7 @@ function AppInner() {
     }, [t])
 
     const handleToast = useCallback((event: ToastEvent) => {
+        notifyRunnerPetToast(event.data)
         const localized = translateIncomingToast(event.data.title, event.data.body)
         addToast({
             title: localized.title,
@@ -535,7 +537,7 @@ function AppInner() {
                 </div>
                 <ToastContainer />
                 {(pathname === '/sessions' || selectedSessionId) && (
-                    <RunnerPetWidget connected={globalSubscriptionId !== null && !sseDisconnected} showOnMobile={pathname === '/sessions'} />
+                    <RunnerPetWidget connected={globalSubscriptionId !== null && !sseDisconnected} />
                 )}
                 <InstallPrompt />
             </VoiceProvider>
