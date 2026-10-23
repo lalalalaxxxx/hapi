@@ -16,6 +16,12 @@ React Mini App / PWA for monitoring and controlling hapi sessions.
 - File browser and git status/diff views.
 - PWA install prompt and offline banner.
 - Optional unread-session count on the Windows taskbar when installed as an Edge/Chrome PWA (toggleable in Display settings; off by default).
+- A dot-matrix Runner companion reflects online, busy, and pending-input states.
+  Click it to inspect Runner counts, choose a machine, or give it a pat. Hide it
+  from its panel and restore it in Display settings. It reuses existing SSE/query
+  data, pauses animation in hidden tabs, and respects reduced-motion preferences.
+  It stays by the session sidebar on desktop and only appears on the session
+  list on phones, keeping the chat composer clear.
 
 ## Runtime behavior
 

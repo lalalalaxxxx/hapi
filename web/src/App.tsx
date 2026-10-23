@@ -36,6 +36,7 @@ import { SyncingBanner } from '@/components/SyncingBanner'
 import { ReconnectingBanner } from '@/components/ReconnectingBanner'
 import { VoiceErrorBanner } from '@/components/VoiceErrorBanner'
 import { RunnerVersionSkewBanner } from '@/components/RunnerVersionSkewBanner'
+import { RunnerPetWidget } from '@/components/RunnerPet'
 import { LoadingState } from '@/components/LoadingState'
 import { ToastContainer } from '@/components/ToastContainer'
 import { PwaUpdateProvider } from '@/lib/pwa-update-context'
@@ -533,6 +534,9 @@ function AppInner() {
                     <Outlet />
                 </div>
                 <ToastContainer />
+                {(pathname === '/sessions' || selectedSessionId) && (
+                    <RunnerPetWidget connected={globalSubscriptionId !== null && !sseDisconnected} showOnMobile={pathname === '/sessions'} />
+                )}
                 <InstallPrompt />
             </VoiceProvider>
         </AppContextProvider>
