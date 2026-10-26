@@ -5,6 +5,7 @@ import { RunnerPet } from './index'
 
 const voice = vi.hoisted(() => ({ interaction: vi.fn(), celebrate: vi.fn(), bored: vi.fn() }))
 vi.mock('./useRunnerPetVoice', () => ({ useRunnerPetVoice: () => voice }))
+vi.mock('./useRunnerPetRoaming', () => ({ useRunnerPetRoaming: () => ({ motion: null, facingLeft: false }) }))
 vi.mock('./useRunnerPetPosition', () => ({ useRunnerPetPosition: () => ({
     dragging: false, style: { visibility: 'visible' }, handlers: {}, consumeDragClick: () => false,
 }) }))
@@ -39,7 +40,7 @@ describe('pet voice interaction scheduling', () => {
         render(<RunnerPet {...props} />)
         act(() => vi.advanceTimersByTime(45_000))
         act(() => vi.advanceTimersByTime(59_000))
-        fireEvent.click(screen.getByRole('button', { name: /runner.pet.title/ }))
+        fireEvent.click(screen.getByRole('button', { name: /runner.pet.character.loopy/ }))
         expect(voice.interaction).toHaveBeenCalledOnce()
         expect(screen.getByRole('dialog')).toBeInTheDocument()
         act(() => vi.advanceTimersByTime(1000))
@@ -47,7 +48,7 @@ describe('pet voice interaction scheduling', () => {
     })
     it('persists the voice switch and cancels reminders when muted', () => {
         render(<RunnerPet {...props} />)
-        fireEvent.click(screen.getByRole('button', { name: /runner.pet.title/ }))
+        fireEvent.click(screen.getByRole('button', { name: /runner.pet.character.loopy/ }))
         const toggle = screen.getByRole('switch', { name: 'runner.pet.voice' })
         expect(toggle).toHaveAttribute('aria-checked', 'true')
         fireEvent.click(toggle)

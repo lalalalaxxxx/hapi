@@ -1,5 +1,13 @@
 export default {
   // Runner companion
+  "runner.pet.choose": "Pet appearance",
+  "runner.pet.character.companion": "Pip · Original character",
+  "runner.pet.character.loopy": "Loopy · Pink beaver",
+  "runner.pet.roaming": "Roam around the page",
+  "runner.pet.roamingDescription": "Walk, hop, perch on messages and fall when support disappears. Keeps clear of the composer; pauses when typing, dragging or opening details. Saved in this browser.",
+  "runner.pet.motion": "Animation playback",
+  "runner.pet.motion.system": "Follow system",
+  "runner.pet.motion.always": "Always animate",
   "runner.pet.title": "Pip · Runner companion",
   "runner.pet.subtitle": "A little company while you build.",
   "runner.pet.open": "Meet your Runner companion",

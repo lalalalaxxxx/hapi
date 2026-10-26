@@ -1,5 +1,13 @@
 export default {
   // Runner companion
+  "runner.pet.choose": "Внешность питомца",
+  "runner.pet.character.companion": "Пип · Исходный персонаж",
+  "runner.pet.character.loopy": "Лупи · Розовый бобр",
+  "runner.pet.roaming": "Прогулки по странице",
+  "runner.pet.roamingDescription": "Ходит и прыгает по сообщениям, падает при потере опоры и не закрывает поле ввода. Пауза при вводе, перетаскивании и открытии панели. Настройка хранится в браузере.",
+  "runner.pet.motion": "Воспроизведение анимации",
+  "runner.pet.motion.system": "Как в системе",
+  "runner.pet.motion.always": "Всегда включено",
   "runner.pet.title": "Пип · спутник Runner",
   "runner.pet.subtitle": "Немного компании за работой.",
   "runner.pet.open": "Открыть спутника Runner",

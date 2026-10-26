@@ -1,17 +1,12 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { runnerPetAsset, type RunnerPetAnimation } from './animations'
+import { DEFAULT_RUNNER_PET, RUNNER_PETS, type RunnerPetType } from './catalog'
+import { useRunnerPetMotion } from './useRunnerPetMotion'
 
-const query = '(prefers-reduced-motion: reduce)'
-function subscribe(listener: () => void) {
-    const media = window.matchMedia(query)
-    media.addEventListener('change', listener)
-    return () => media.removeEventListener('change', listener)
-}
-const snapshot = () => window.matchMedia(query).matches
-
-export function RunnerPetSprite(props: { animation: RunnerPetAnimation; paused?: boolean }) {
-    const reducedMotion = useSyncExternalStore(subscribe, snapshot, () => true)
-    const source = runnerPetAsset(props.animation, props.paused || reducedMotion)
+export function RunnerPetSprite(props: { animation: RunnerPetAnimation; paused?: boolean; pet?: RunnerPetType; motion?: 'system' | 'always' }) {
+    const pet = props.pet ?? DEFAULT_RUNNER_PET
+    const animated = useRunnerPetMotion(props.motion ?? 'system')
+    const source = runnerPetAsset(props.animation, props.paused || !animated, pet)
     const [shown, setShown] = useState('')
     useEffect(() => {
         let active = true
@@ -22,11 +17,11 @@ export function RunnerPetSprite(props: { animation: RunnerPetAnimation; paused?:
     }, [source])
     useEffect(() => {
         // Decode common reactions early so dragging/tapping never flashes a box.
-        for (const state of ['tap', 'happy', 'drag'] as const) new Image().src = runnerPetAsset(state)
-    }, [])
+        for (const state of ['tap', 'happy', 'drag', 'walk', 'jump', 'land', 'fall'] as const) new Image().src = runnerPetAsset(state, false, pet)
+    }, [pet])
     return (
         <span className="runner-pet-sprite" aria-hidden="true" data-animation={props.animation}
-            data-ready={shown === source || undefined}>
+            data-ready={shown === source || undefined} style={{ aspectRatio: RUNNER_PETS[pet].aspectRatio }}>
             {shown && <img src={shown} alt="" draggable={false} className="runner-pet-image" />}
         </span>
     )

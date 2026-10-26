@@ -101,7 +101,7 @@ export function HappyUserMessage() {
             data-hapi-message-role="user"
             className="happy-message flex flex-col items-end scroll-mt-4"
         >
-            <div className={getUserBubbleClassName(status)}>
+            <div className={getUserBubbleClassName(status)} data-runner-pet-surface={elementId}>
                 <div className="flex items-start gap-2">
                     <div className="min-w-0 flex-1">
                         {hasText ? <UserBubbleContent text={text} /> : null}

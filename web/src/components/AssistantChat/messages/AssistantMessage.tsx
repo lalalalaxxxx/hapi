@@ -76,6 +76,7 @@ export function HappyAssistantMessage() {
         <MessagePrimitive.Root
             id={elementId}
             data-hapi-message-role="assistant"
+            data-runner-pet-surface={!toolOnly ? elementId : undefined}
             className={`happy-message ${rootClass} scroll-mt-4`}
         >
             {isCliOutput

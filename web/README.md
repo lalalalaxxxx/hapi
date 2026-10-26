@@ -27,6 +27,17 @@ React Mini App / PWA for monitoring and controlling hapi sessions.
   The visual viewport and `data-runner-pet-avoid` composer bounds keep it clear
   of the editor and keyboard. It shrinks in tight spaces; only a fully occupied
   viewport temporarily hides it, until room is available again.
+  Display settings and the pet panel can switch between the original companion
+  and Loopy (the default when no character has been selected). Existing explicit
+  character choices are preserved. Character choice, autonomous movement, and animation mode are saved
+  per browser/origin and update other tabs on that origin, not other devices.
+  Autonomous walks and jumps run every 5–10 seconds when unobstructed; their
+  entire paths avoid the composer. Typing, dragging, hovering, scrolling, open
+  dialogs, and the pet panel pause autonomous actions. In chats, scrolling still
+  carries a pet standing on a message; hovering stops walks but allows landing.
+  Reduced-motion preferences disable
+  it unless the user explicitly selects Always animate. Disable roaming to keep
+  manual positioning and reactions without autonomous movement.
 
 ### Runner companion artwork
 
@@ -60,6 +71,32 @@ variation. Hidden tabs and reduced-motion mode show a static poster.
 Animation timing lives in `src/components/RunnerPet/animations.ts`.
 Preview the widget at
 `/e2e-fixtures/runner-pet-fixture.html` on the Web development server.
+
+Loopy adds 16 subscription-generated poses, packaged by
+`python scripts/dev/runner-pet-loopy.py` from the local source
+`output/imagegen/loopy-pet-v1.png`. It uses the same Pillow/numpy/OpenCV toolchain
+and makes no API requests. The committed `public/pets/loopy-v1/` contains nine
+state loops plus walk (1.4 s), jump (1 s), fall (1 s), and land (0.32 s), with transparent
+static posters. Optical-flow inbetweens target 24 fps; these are not separately
+drawn frames. Original companion movement reuses working/happy/tap poses with
+continuous page movement and CSS body motion; falling reuses the dangling pose.
+Both currently share the existing voice.
+
+### Message platforms and gravity
+
+Inside a `data-runner-pet-world` chat viewport, both characters stand on visible
+`data-runner-pet-surface` message tops. Dropping a pet within 28 px of a ledge
+snaps its feet to that ledge. It follows ordinary message scrolling/reflow,
+walks along edges, and jumps to nearby messages. Walking off an edge, removing
+a message, or scrolling its ledge out of view releases the pet under gravity.
+Swept landing checks catch the next platform on descent. Safe floors above the
+composer and viewport bottom catch other falls, with a smoke puff on recovery.
+Large layout jumps release support rather than teleporting with the message.
+Typing, open dialogs, hidden tabs, and dragging pause physics; disabling roaming
+or reduced-motion playback stops it entirely. Leaving a chat restores free-page
+roaming. Geometry is cached between frames and invalidated on scroll/mutation;
+all listeners, timers, and animation frames are cleaned up on disable/unmount.
+Preview these scenarios with `/e2e-fixtures/runner-pet-fixture.html?physics=1`.
 
 ### Runner companion voice
 

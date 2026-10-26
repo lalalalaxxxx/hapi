@@ -1,0 +1,84 @@
+{
+  "character": "Loopy",
+  "source": "Subscription built-in image_gen; 16 poses, optical-flow inbetweens",
+  "animations": {
+    "idle": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 3,
+      "bytes": 147934
+    },
+    "tap": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 3,
+      "bytes": 178650
+    },
+    "happy": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 2,
+      "bytes": 290648
+    },
+    "bored": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 1,
+      "bytes": 61478
+    },
+    "celebrate": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 3,
+      "bytes": 239912
+    },
+    "working": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 3,
+      "bytes": 269350
+    },
+    "waiting": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 1,
+      "bytes": 66036
+    },
+    "offline": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 1,
+      "bytes": 61478
+    },
+    "drag": {
+      "durationMs": 2000,
+      "playbackFrames": 48,
+      "sourcePoses": 1,
+      "bytes": 300834
+    },
+    "walk": {
+      "durationMs": 1400,
+      "playbackFrames": 34,
+      "sourcePoses": 4,
+      "bytes": 198076
+    },
+    "jump": {
+      "durationMs": 1000,
+      "playbackFrames": 24,
+      "sourcePoses": 3,
+      "bytes": 140234
+    },
+    "land": {
+      "durationMs": 320,
+      "playbackFrames": 8,
+      "sourcePoses": 2,
+      "bytes": 45600
+    },
+    "fall": {
+      "durationMs": 1000,
+      "playbackFrames": 24,
+      "sourcePoses": 1,
+      "bytes": 58880
+    }
+  }
+}

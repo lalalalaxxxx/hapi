@@ -9,13 +9,18 @@ function readAnchor(): PetPoint | null {
             && value.x >= 0 && value.x <= 1 && value.y >= 0 && value.y <= 1 ? value : null
     } catch { return null }
 }
-function viewport(): PetRect {
+export function runnerPetViewport(): PetRect {
     const visual = window.visualViewport
     return { left: visual?.offsetLeft ?? 0, top: visual?.offsetTop ?? 0,
         width: visual?.width ?? window.innerWidth, height: visual?.height ?? window.innerHeight }
 }
 
-export function useRunnerPetPosition() {
+export function runnerPetObstacles(): PetRect[] {
+    return [...document.querySelectorAll<HTMLElement>('[data-runner-pet-avoid]')]
+        .map(node => node.getBoundingClientRect()).filter(rect => rect.width && rect.height)
+}
+
+export function useRunnerPetPosition(aspectRatio = 2 / 3) {
     const anchor = useRef(readAnchor())
     const drag = useRef<{ id: number; start: PetPoint; origin: PetPoint; moved: boolean } | null>(null)
     const suppressClick = useRef(false)
@@ -24,21 +29,20 @@ export function useRunnerPetPosition() {
     const current = useRef(placement)
     const [bottomPadding, setBottomPadding] = useState(8)
     const recalculate = useCallback((point?: PetPoint) => {
-        const view = viewport()
+        const view = runnerPetViewport()
         const width = view.width < 920 ? 80 : 96
-        const height = width * 1.5
+        const height = width / aspectRatio
         const preferred = anchor.current ?? { x: view.width < 920 ? 1 : 0, y: 1 }
         const desired = point ?? { x: view.left + preferred.x * Math.max(0, view.width - width),
             y: view.top + preferred.y * Math.max(0, view.height - height) }
-        const obstacles = [...document.querySelectorAll<HTMLElement>('[data-runner-pet-avoid]')]
-            .map(node => node.getBoundingClientRect()).filter(rect => rect.width && rect.height)
+        const obstacles = runnerPetObstacles()
         const next = placeRunnerPet(desired, { width, height }, view, obstacles)
         current.current = next
         setPlacement(previous => Object.keys(next).every(key => previous[key as keyof typeof next] === next[key as keyof typeof next]) ? previous : next)
         const floor = Math.min(view.top + view.height, ...obstacles.map(rect => rect.top))
         setBottomPadding(Math.max(8, window.innerHeight - floor + 8))
         return next
-    }, [])
+    }, [aspectRatio])
 
     useLayoutEffect(() => {
         let frame = 0
@@ -67,12 +71,14 @@ export function useRunnerPetPosition() {
         }
     }, [recalculate])
 
-    const move = (point: PetPoint) => {
+    const move = useCallback((point: PetPoint) => {
         const next = recalculate(point)
-        const view = viewport()
+        const view = runnerPetViewport()
         anchor.current = { x: Math.max(0, Math.min(1, (next.x - view.left) / Math.max(1, view.width - next.width))),
             y: Math.max(0, Math.min(1, (next.y - view.top) / Math.max(1, view.height - next.height))) }
-    }
+        return next
+    }, [recalculate])
+    const getPlacement = useCallback(() => current.current, [])
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(anchor.current)) } catch { /* Memory-only in private mode. */ } }
     const end = (event: PointerEvent<HTMLButtonElement>) => {
         if (drag.current?.id !== event.pointerId) return
@@ -84,6 +90,8 @@ export function useRunnerPetPosition() {
     }
     return {
         dragging,
+        moveTo: move,
+        getPlacement,
         style: { left: placement.x, top: placement.y, width: placement.width, height: placement.height,
             visibility: placement.visible ? 'visible' : 'hidden' } as CSSProperties,
         collisionPadding: { top: 8, left: 8, right: 8, bottom: bottomPadding },

@@ -1777,6 +1777,7 @@ export function HappyThread(props: {
                 >
                     <div
                         ref={viewportRef}
+                        data-runner-pet-world
                         className="app-scroll-y chat-scroll-y scrollbar-auto-hide min-h-0 flex-1 overflow-x-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--app-link)]"
                         tabIndex={0}
                     >

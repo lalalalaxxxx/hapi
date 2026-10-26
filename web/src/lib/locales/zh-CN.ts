@@ -1,5 +1,13 @@
 export default {
   // Runner companion
+  "runner.pet.choose": "宠物形象",
+  "runner.pet.character.companion": "点点 · 原有人物",
+  "runner.pet.character.loopy": "Loopy · 粉色小海狸",
+  "runner.pet.roaming": "自主活动",
+  "runner.pet.roamingDescription": "在页面上走跳，也能站在消息边缘，失去支撑后下落。输入、拖动或打开详情时暂停，避开输入框。仅影响当前浏览器。",
+  "runner.pet.motion": "动画播放",
+  "runner.pet.motion.system": "跟随系统",
+  "runner.pet.motion.always": "始终播放",
   "runner.pet.title": "点点 · Runner 小伙伴",
   "runner.pet.subtitle": "你认真创造，我负责陪伴。",
   "runner.pet.open": "看看 Runner 小伙伴",

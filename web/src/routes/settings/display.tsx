@@ -13,6 +13,7 @@ import { useSessionHeaderMetadata, type SessionHeaderMetadataKey } from '@/hooks
 import { useAppBadgePreference } from '@/hooks/useAppBadgePreference'
 import { useRunnerPetVoicePreference } from '@/hooks/useRunnerPetVoicePreference'
 import { useRunnerPetPreference } from '@/hooks/useRunnerPetPreference'
+import { RunnerPetSettings } from '@/components/RunnerPet/RunnerPetSettings'
 import { useOpenExternalLinksInNewTab } from '@/hooks/useOpenExternalLinksInNewTab'
 import { SettingsChoiceGroup, SettingsFieldLabel, SettingsPageContent, SettingsRow, SettingsSection, SettingsSwitch } from '@/components/settings/SettingsPrimitives'
 
@@ -174,6 +175,7 @@ export default function SettingsDisplayPage() {
                 <ThemeColorControls />
                 <SettingsSwitch label={t('runner.pet.setting')} description={t('runner.pet.settingDescription')} checked={runnerPetEnabled} onChange={setRunnerPetEnabled} />
                 <SettingsSwitch label={t('runner.pet.voice')} description={t('runner.pet.voiceDescription')} checked={runnerPetVoiceEnabled} onChange={setRunnerPetVoiceEnabled} />
+                <RunnerPetSettings />
             </SettingsSection>
 
             <SettingsSection title={t('settings.display.typography')}>
