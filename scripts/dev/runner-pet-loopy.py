@@ -19,12 +19,12 @@ spec = importlib.util.spec_from_file_location('smooth', Path(__file__).with_name
 smooth = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(smooth)
 CLIPS = {
-    'idle': ([0, 0, 0, 1, 0, 2, 0, 0], 2000),
+    'idle': ([0], 2000),
     'tap': ([0, 12, 12, 3, 0], 2000),
     'happy': ([3, 14, 3, 14], 2000),
     'bored': ([13], 2000),
     'celebrate': ([3, 14, 9, 14, 3], 2000),
-    'working': ([0, 2, 0, 1], 2000),
+    'working': ([2], 2000),
     'waiting': ([2], 2000),
     'offline': ([13], 2000),
     'drag': ([15], 2000),
@@ -33,6 +33,21 @@ CLIPS = {
     'land': ([11, 0], 320),
     'fall': ([10], 1000),
 }
+
+
+def coherent_sway(premultiplied, phase, amplitude):
+    # Transform the entire character with one affine matrix. Dense optical flow
+    # between differently turned faces can pin/duplicate the eyes and nose.
+    angle = math.sin(phase) * amplitude
+    breath = 1 + .008 * math.sin(phase)
+    matrix = cv2.getRotationMatrix2D((96, 180), angle, breath)
+    rgba = cv2.warpAffine(premultiplied, matrix, (192, 192), flags=cv2.INTER_CUBIC,
+                          borderMode=cv2.BORDER_CONSTANT)
+    rgba = np.clip(rgba, 0, 1)
+    alpha = rgba[:, :, 3:4]
+    rgba[:, :, :3] = np.divide(rgba[:, :, :3], alpha, out=np.zeros_like(rgba[:, :, :3]), where=alpha > .005)
+    rgba[alpha[:, :, 0] < .03] = 0
+    return Image.fromarray(np.clip(rgba * 255, 0, 255).astype(np.uint8))
 
 
 def main():
@@ -86,7 +101,10 @@ def main():
                 if pair not in cache:
                     cache[pair] = (flow.calc(prepared[a][1], prepared[b][1], None), flow.calc(prepared[b][1], prepared[a][1], None))
                 frame = smooth.tween(prepared[a][0], prepared[b][0], *cache[pair], t)
-            if len(sequence) == 1:
+            if name in ('idle', 'working'):
+                frame = coherent_sway(prepared[sequence[0]][0], frame_index / total * 2 * math.pi,
+                                      1.4 if name == 'idle' else .8)
+            elif len(sequence) == 1:
                 phase = frame_index / total * 2 * math.pi
                 if name == 'drag':
                     frame = frame.rotate(math.sin(phase)*4, Image.Resampling.BICUBIC, center=(96, 45))
@@ -99,8 +117,15 @@ def main():
         timings = [round((i+1)*duration/total)-round(i*duration/total) for i in range(total)]
         output = DEST / f'{name}.webp'
         frames[0].save(output, save_all=True, append_images=frames[1:], duration=timings, loop=0 if looping else 1, quality=90, method=6)
+        if name in ('idle', 'working'):
+            # New URLs bypass previously precached distorted clips. Keep the old
+            # URL updated too for clients still running the preceding bundle.
+            (DEST / f'{name}-stable.webp').write_bytes(output.read_bytes())
         poses[sequence[0]].save(DEST / 'static' / f'{name}.webp', quality=95, method=6)
         manifest['animations'][name] = {'durationMs': duration, 'playbackFrames': total, 'sourcePoses': len(set(sequence)), 'bytes': output.stat().st_size}
+        if name in ('idle', 'working'):
+            manifest['animations'][name]['method'] = 'Single coherent pose; whole-character affine breathing and sway; no face interpolation'
+            manifest['animations'][name]['file'] = f'{name}-stable.webp'
         print(name, duration, total, output.stat().st_size, flush=True)
     (DEST / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8', newline='\n')
     # A clean contact sheet for review; original generation remains untouched.

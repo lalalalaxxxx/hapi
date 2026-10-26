@@ -24,6 +24,6 @@ export function runnerPetAsset(animation: RunnerPetAnimation, still = false, pet
     // The original character keeps its approved artwork while gaining continuous movement.
     const source = pet === 'companion'
         ? ({ walk: 'working', jump: 'happy', land: 'tap', fall: 'drag' } as Partial<Record<RunnerPetAnimation, string>>)[animation] ?? animation
-        : animation
+        : !still && (animation === 'idle' || animation === 'working') ? `${animation}-stable` : animation
     return `${import.meta.env.BASE_URL}pets/${RUNNER_PETS[pet].assets}/${still ? 'static/' : ''}${source}.webp`
 }

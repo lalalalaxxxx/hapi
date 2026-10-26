@@ -82,6 +82,11 @@ drawn frames. Original companion movement reuses working/happy/tap poses with
 continuous page movement and CSS body motion; falling reuses the dangling pose.
 Both currently share the existing voice.
 
+Loopy's idle and working loops use a single coherent pose with whole-character
+breathing and sway. They deliberately avoid optical-flow interpolation across
+head turns, which can misalign the eyes and nose. Their `*-stable.webp` URLs
+replace the earlier precached clips; legacy URLs also contain the corrected art.
+
 ### Message platforms and gravity
 
 Inside a `data-runner-pet-world` chat viewport, both characters stand on visible

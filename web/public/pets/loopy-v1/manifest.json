@@ -5,8 +5,10 @@
     "idle": {
       "durationMs": 2000,
       "playbackFrames": 48,
-      "sourcePoses": 3,
-      "bytes": 147934
+      "sourcePoses": 1,
+      "bytes": 339646,
+      "method": "Single coherent pose; whole-character affine breathing and sway; no face interpolation",
+      "file": "idle-stable.webp"
     },
     "tap": {
       "durationMs": 2000,
@@ -35,8 +37,10 @@
     "working": {
       "durationMs": 2000,
       "playbackFrames": 48,
-      "sourcePoses": 3,
-      "bytes": 269350
+      "sourcePoses": 1,
+      "bytes": 338804,
+      "method": "Single coherent pose; whole-character affine breathing and sway; no face interpolation",
+      "file": "working-stable.webp"
     },
     "waiting": {
       "durationMs": 2000,

@@ -51,5 +51,8 @@ describe('Runner pet safe roaming routes', () => {
         expect(runnerPetAsset('jump', false, 'companion')).toContain('/runner-v2/happy.webp')
         expect(runnerPetAsset('jump', false, 'loopy')).toContain('/loopy-v1/jump.webp')
         expect(runnerPetAsset('drag', true, 'loopy')).toContain('/loopy-v1/static/drag.webp')
+        expect(runnerPetAsset('idle')).toContain('/loopy-v1/idle-stable.webp')
+        expect(runnerPetAsset('working')).toContain('/loopy-v1/working-stable.webp')
+        expect(runnerPetAsset('idle', true)).toContain('/loopy-v1/static/idle.webp')
     })
 })
