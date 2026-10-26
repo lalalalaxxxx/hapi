@@ -45,8 +45,8 @@ describe('pet audio playback', () => {
     })
     it('loads the selected character pack and shares tap/drag cooldown', async () => {
         expect(vi.mocked(fetch).mock.calls.map(([url]) => url)).toEqual([
-            '/pets/loopy-voice-v1/interact.mp3', '/pets/loopy-voice-v1/drag.mp3',
-            '/pets/loopy-voice-v1/celebrate.mp3', '/pets/loopy-voice-v1/bored.mp3',
+            '/pets/loopy-voice-v2/interact.mp3', '/pets/loopy-voice-v2/drag.mp3',
+            '/pets/loopy-voice-v2/celebrate.mp3', '/pets/loopy-voice-v2/bored.mp3',
         ])
         player.unlock()
         expect(player.play('drag')).toBe(true)

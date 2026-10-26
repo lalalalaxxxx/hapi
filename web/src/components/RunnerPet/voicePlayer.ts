@@ -3,7 +3,7 @@ import type { RunnerPetType } from './catalog'
 export type PetVoice = 'interact' | 'drag' | 'celebrate' | 'bored'
 const VOICE_PACKS: Record<RunnerPetType, Record<PetVoice, string>> = {
     companion: { interact: 'voice-v1/interact', drag: 'voice-v1/interact', celebrate: 'voice-v1/celebrate', bored: 'voice-v1/bored' },
-    loopy: { interact: 'loopy-voice-v1/interact', drag: 'loopy-voice-v1/drag', celebrate: 'loopy-voice-v1/celebrate', bored: 'loopy-voice-v1/bored' },
+    loopy: { interact: 'loopy-voice-v2/interact', drag: 'loopy-voice-v2/drag', celebrate: 'loopy-voice-v2/celebrate', bored: 'loopy-voice-v2/bored' },
 }
 
 /** Preloaded clips; no microphone, speech service, or queued background speech. */

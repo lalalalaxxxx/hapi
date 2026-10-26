@@ -108,11 +108,11 @@ Preview these scenarios with `/e2e-fixtures/runner-pet-fixture.html?physics=1`.
 The original companion's three Mandarin MP3 clips in `public/pets/voice-v1/` respond to clicking
 or starting a drag (啊，不要啦), validated task completion
 (终于做完啦，快来看看吧～), and each full minute spent bored
-(快来陪我玩玩吧). Loopy uses four separate clips in `public/pets/loopy-voice-v1/`:
-click/pat (嘿嘿，好痒呀！), pickup/drag (哎呀，我飞起来啦！), boredom
+(快来陪我玩玩吧). Loopy uses four separate clips in `public/pets/loopy-voice-v2/`:
+click/pat (痒！痒！痒！), pickup/drag (嘿嘿，飞起来咯), boredom
 (唔，好无聊呀，陪我玩一会儿嘛！), and completion
-(耶，做好啦！快来看看，我厉害吧！). Its voice instructions specify a bright,
-rounded cartoon voice with playful surprise, anticipation, and proud excitement.
+(耶，做好啦！快来看看，我厉害吧！). Its voice instructions specify a young,
+soft, bright cartoon voice with playful surprise, anticipation, and proud excitement.
 The first reminder is 60 seconds after entering boredom. Automatic roaming is silent.
 Voice defaults on; the panel and Display settings share a persistent mute switch.
 Browser autoplay policy requires an initial user gesture. Missed lines are never
@@ -128,6 +128,8 @@ Add `--pet loopy` for the Loopy pack; text and per-action delivery are recorded
 alongside each generated WAV. Both packs use the same local model with different instructions.
 It needs `qwen-tts` and CUDA PyTorch in an isolated Python environment. Convert the
 resulting WAV files to 24 kHz/96 kbps MP3 with FFmpeg (`loudnorm=I=-18:TP=-1.5:LRA=11`).
+Loopy v2 additionally raises pitch/formants two semitones while preserving timing:
+use `rubberband=pitch=1.122462:tempo=1:formant=shifted` before the loudness filter.
 `scripts/dev/runner-pet-voice.py` preserves the earlier Edge speech experiment.
 The local generation and bundled playback require no paid speech API and are
 independent of HAPI's conversational/dictation voice configuration.
