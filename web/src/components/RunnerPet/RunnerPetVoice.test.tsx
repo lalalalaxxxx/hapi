@@ -3,11 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Machine } from '@/types/api'
 import { RunnerPet } from './index'
 
-const voice = vi.hoisted(() => ({ interaction: vi.fn(), celebrate: vi.fn(), bored: vi.fn() }))
+const voice = vi.hoisted(() => ({ interaction: vi.fn(), drag: vi.fn(), celebrate: vi.fn(), bored: vi.fn() }))
+const position = vi.hoisted(() => ({ dragging: false }))
 vi.mock('./useRunnerPetVoice', () => ({ useRunnerPetVoice: () => voice }))
 vi.mock('./useRunnerPetRoaming', () => ({ useRunnerPetRoaming: () => ({ motion: null, facingLeft: false }) }))
 vi.mock('./useRunnerPetPosition', () => ({ useRunnerPetPosition: () => ({
-    dragging: false, style: { visibility: 'visible' }, handlers: {}, consumeDragClick: () => false,
+    dragging: position.dragging, style: { visibility: 'visible' }, handlers: {}, consumeDragClick: () => false,
 }) }))
 vi.mock('@/lib/use-translation', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
 vi.mock('@tanstack/react-router', () => ({ Link: (props: { children: React.ReactNode }) => <a>{props.children}</a> }))
@@ -20,9 +21,18 @@ const props = { machines: [machine], sessions: [], connected: true, onHide: () =
 describe('pet voice interaction scheduling', () => {
     beforeEach(() => {
         vi.useFakeTimers(); vi.clearAllMocks(); localStorage.clear()
+        position.dragging = false
         window.dispatchEvent(new StorageEvent('storage', { key: null }))
     })
     afterEach(() => vi.useRealTimers())
+    it('plays the drag line once when picked up, separately from tapping', () => {
+        const { rerender } = render(<RunnerPet {...props} />)
+        position.dragging = true
+        rerender(<RunnerPet {...props} />)
+        rerender(<RunnerPet {...props} />)
+        expect(voice.drag).toHaveBeenCalledOnce()
+        expect(voice.interaction).not.toHaveBeenCalled()
+    })
     it('calls once per minute while bored, and stops on disconnect', () => {
         const { rerender } = render(<RunnerPet {...props} />)
         act(() => vi.advanceTimersByTime(45_000))

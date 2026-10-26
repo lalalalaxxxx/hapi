@@ -28,14 +28,33 @@ CLIPS = {
 }
 
 
+LOOPY_COMMON = ('用软萌可爱的卡通小动物女声说普通话，声音圆润、明亮、轻盈，音调偏高，带一点鼻音和笑意。'
+                '像活泼的小海狸和朋友玩耍，自然口语，吐字清楚，有灵动的轻重和高低变化。'
+                '保持同一个角色的音色，不要播音腔，不要成人妩媚气声，不要耳语，不要尖叫。')
+LOOPY_CLIPS = {
+    'interact': ('嘿嘿，好痒呀！', LOOPY_COMMON +
+        '被朋友轻轻摸了摸，忍不住开心地笑。嘿嘿轻快，停一下，好痒呀俏皮上扬，像笑着躲开。'),
+    'drag': ('哎呀，我飞起来啦！', LOOPY_COMMON +
+        '突然被拎起来，小小惊讶后变得兴奋。哎呀短促圆润，我飞起来啦带着淘气的笑，尾音轻快上扬。'),
+    'bored': ('唔，好无聊呀，陪我玩一会儿嘛！', LOOPY_COMMON +
+        '趴着等朋友，开头唔轻轻嘟囔，好无聊呀有一点小委屈，后半句马上变得期待，像歪头邀请朋友玩。'),
+    'celebrate': ('耶，做好啦！快来看看，我厉害吧！', LOOPY_COMMON +
+        '开心地蹦起来庆祝，耶清脆短促，做好啦充满成就感。停一下，快来看看热情邀请，我厉害吧得意又可爱，尾音上扬。'),
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--speakers', nargs='+', default=['Vivian'], choices=['Vivian', 'Serena'])
-    parser.add_argument('--clips', nargs='+', default=list(CLIPS), choices=list(CLIPS))
+    parser.add_argument('--pet', choices=['companion', 'loopy'], default='companion')
+    parser.add_argument('--clips', nargs='+', choices=list(LOOPY_CLIPS))
     parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
+    clips = LOOPY_CLIPS if args.pet == 'loopy' else CLIPS
+    if args.clips and any(name not in clips for name in args.clips):
+        parser.error('The selected pet does not have all requested clips')
     import torch
     import soundfile as sf
     from qwen_tts import Qwen3TTSModel
@@ -46,11 +65,11 @@ def main():
     model = Qwen3TTSModel.from_pretrained(str(args.model.resolve()), device_map='cuda:0',
         dtype=torch.bfloat16, attn_implementation='sdpa')
     for speaker in args.speakers:
-        for name in args.clips:
+        for name in args.clips or clips:
             output = args.output / f'{name}-{speaker.lower()}.wav'
             if output.exists() and not args.force:
                 continue
-            text, instruct = CLIPS[name]
+            text, instruct = clips[name]
             start = time.time()
             print(f'Generating {speaker}: {name}', flush=True)
             wavs, sr = model.generate_custom_voice(text=text, language='Chinese', speaker=speaker,

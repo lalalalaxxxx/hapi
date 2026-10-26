@@ -21,7 +21,7 @@ describe('pet audio playback', () => {
             }
         })
         vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(1) })))
-        player = new PetVoicePlayer()
+        player = new PetVoicePlayer('loopy')
         await vi.advanceTimersByTimeAsync(0)
     })
     afterEach(() => { player.dispose(); vi.unstubAllGlobals(); vi.useRealTimers() })
@@ -43,6 +43,27 @@ describe('pet audio playback', () => {
         vi.advanceTimersByTime(3000)
         expect(player.play('interact')).toBe(true)
     })
+    it('loads the selected character pack and shares tap/drag cooldown', async () => {
+        expect(vi.mocked(fetch).mock.calls.map(([url]) => url)).toEqual([
+            '/pets/loopy-voice-v1/interact.mp3', '/pets/loopy-voice-v1/drag.mp3',
+            '/pets/loopy-voice-v1/celebrate.mp3', '/pets/loopy-voice-v1/bored.mp3',
+        ])
+        player.unlock()
+        expect(player.play('drag')).toBe(true)
+        sources[0].onended?.()
+        expect(player.play('interact')).toBe(false)
+        vi.advanceTimersByTime(3000)
+        expect(player.play('interact')).toBe(true)
+        player.dispose()
+        vi.mocked(fetch).mockClear()
+        player = new PetVoicePlayer('companion')
+        await vi.advanceTimersByTimeAsync(0)
+        expect(vi.mocked(fetch).mock.calls.map(([url]) => url)).toEqual([
+            '/pets/voice-v1/interact.mp3', '/pets/voice-v1/celebrate.mp3', '/pets/voice-v1/bored.mp3',
+        ])
+        player.unlock()
+        expect(player.play('drag')).toBe(true)
+    })
     it('lets completion interrupt a reminder but never repeats or overlaps the cheer', () => {
         player.unlock()
         player.play('bored')
@@ -63,7 +84,7 @@ describe('pet audio playback', () => {
     it('silently tolerates unsupported browsers and unavailable clips', async () => {
         player.dispose()
         vi.stubGlobal('AudioContext', undefined)
-        player = new PetVoicePlayer()
+        player = new PetVoicePlayer('loopy')
         expect(() => player.unlock()).not.toThrow()
         expect(player.play('interact')).toBe(false)
     })
@@ -71,7 +92,7 @@ describe('pet audio playback', () => {
         player.dispose()
         let finish!: (value: unknown) => void
         vi.stubGlobal('fetch', vi.fn(() => new Promise(resolve => { finish = resolve })))
-        player = new PetVoicePlayer()
+        player = new PetVoicePlayer('loopy')
         player.unlock()
         expect(player.play('bored')).toBe(false)
         finish({ ok: true, arrayBuffer: async () => new ArrayBuffer(1) })

@@ -2,22 +2,31 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRunnerPetVoice } from './useRunnerPetVoice'
 
-const audio = vi.hoisted(() => ({ play: vi.fn(), unlock: vi.fn(), stop: vi.fn(), dispose: vi.fn() }))
+const audio = vi.hoisted(() => ({ create: vi.fn(), play: vi.fn(), unlock: vi.fn(), stop: vi.fn(), dispose: vi.fn() }))
 vi.mock('./voicePlayer', () => ({ PetVoicePlayer: class {
+    constructor(pet: string) { audio.create(pet) }
     play = audio.play
     unlock = audio.unlock
     stop = audio.stop
     dispose = audio.dispose
 } }))
-const options = { enabled: true, visible: true, machineId: '' }
+const options: Parameters<typeof useRunnerPetVoice>[0] = { enabled: true, visible: true, machineId: '', pet: 'loopy' }
 
 describe('pet voice lifecycle', () => {
     beforeEach(() => { vi.clearAllMocks(); vi.spyOn(document, 'hasFocus').mockReturnValue(true) })
     afterEach(() => vi.restoreAllMocks())
     it('plays direct interaction and validated celebration callbacks', () => {
         const { result } = renderHook(useRunnerPetVoice, { initialProps: options })
-        act(() => { result.current.interaction(); result.current.celebrate(); result.current.bored() })
-        expect(audio.play.mock.calls).toEqual([['interact'], ['celebrate'], ['bored']])
+        act(() => { result.current.interaction(); result.current.drag(); result.current.celebrate(); result.current.bored() })
+        expect(audio.play.mock.calls).toEqual([['interact'], ['drag'], ['celebrate'], ['bored']])
+    })
+    it('disposes the previous pack and loads the selected pet without replaying speech', () => {
+        const { rerender } = renderHook(useRunnerPetVoice, { initialProps: options })
+        expect(audio.create).toHaveBeenLastCalledWith('loopy')
+        rerender({ ...options, pet: 'companion' })
+        expect(audio.dispose).toHaveBeenCalledOnce()
+        expect(audio.create).toHaveBeenLastCalledWith('companion')
+        expect(audio.play).not.toHaveBeenCalled()
     })
     it('stops on hiding and never queues missed events on return', () => {
         const { result, rerender } = renderHook(useRunnerPetVoice, { initialProps: options })

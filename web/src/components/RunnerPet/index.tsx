@@ -47,7 +47,7 @@ export function RunnerPet(props: {
     const unknown = state.mood === 'connecting'
     const { runnerPetVoiceEnabled, setRunnerPetVoiceEnabled } = useRunnerPetVoicePreference()
     const voiceVisible = visible && position.style.visibility !== 'hidden'
-    const voice = useRunnerPetVoice({ enabled: runnerPetVoiceEnabled, visible: voiceVisible, machineId: selectedId })
+    const voice = useRunnerPetVoice({ enabled: runnerPetVoiceEnabled, visible: voiceVisible, machineId: selectedId, pet: settings.pet })
     const { animation, interact: animateInteraction } = useRunnerPetAnimation({
         ...props, mood: state.mood, machineId: selectedId, visible, onCelebrate: voice.celebrate,
     })
@@ -68,7 +68,7 @@ export function RunnerPet(props: {
         const timer = setTimeout(() => setArriving(false), 650)
         return () => clearTimeout(timer)
     }, [settings.pet, animated, visible, physics.poof])
-    useEffect(() => { if (position.dragging) voice.interaction() }, [position.dragging, voice.interaction])
+    useEffect(() => { if (position.dragging) voice.drag() }, [position.dragging, voice.drag])
     useEffect(() => {
         if (!runnerPetVoiceEnabled || !voiceVisible || position.dragging || animation !== 'bored' || state.mood !== 'idle') return
         const timer = setInterval(voice.bored, 60_000)

@@ -80,7 +80,7 @@ state loops plus walk (1.4 s), jump (1 s), fall (1 s), and land (0.32 s), with t
 static posters. Optical-flow inbetweens target 24 fps; these are not separately
 drawn frames. Original companion movement reuses working/happy/tap poses with
 continuous page movement and CSS body motion; falling reuses the dangling pose.
-Both currently share the existing voice.
+Each character has its own voice pack; switching pets stops the previous voice.
 
 Loopy's idle and working loops use a single coherent pose with whole-character
 breathing and sway. They deliberately avoid optical-flow interpolation across
@@ -105,20 +105,27 @@ Preview these scenarios with `/e2e-fixtures/runner-pet-fixture.html?physics=1`.
 
 ### Runner companion voice
 
-Three bundled Mandarin MP3 clips in `public/pets/voice-v1/` respond to clicking
+The original companion's three Mandarin MP3 clips in `public/pets/voice-v1/` respond to clicking
 or starting a drag (啊，不要啦), validated task completion
 (终于做完啦，快来看看吧～), and each full minute spent bored
-(快来陪我玩玩吧). The first reminder is 60 seconds after entering boredom.
+(快来陪我玩玩吧). Loopy uses four separate clips in `public/pets/loopy-voice-v1/`:
+click/pat (嘿嘿，好痒呀！), pickup/drag (哎呀，我飞起来啦！), boredom
+(唔，好无聊呀，陪我玩一会儿嘛！), and completion
+(耶，做好啦！快来看看，我厉害吧！). Its voice instructions specify a bright,
+rounded cartoon voice with playful surprise, anticipation, and proud excitement.
+The first reminder is 60 seconds after entering boredom. Automatic roaming is silent.
 Voice defaults on; the panel and Display settings share a persistent mute switch.
 Browser autoplay policy requires an initial user gesture. Missed lines are never
 queued. Hidden/unfocused pages stop audio; completion takes priority over other
-lines, and rapid interactions have a 3-second cooldown. Clips are precached for
+lines, and clicks/drags share a 3-second cooldown. Clips are precached for
 offline playback, with no microphone or runtime speech API calls.
 
 The bundled voice uses locally generated Qwen3-TTS Vivian, with separate emotion
 instructions for bashful interaction, proud celebration, and playful requests for
 company. `scripts/dev/runner-pet-voice-qwen.py` records the text and instructions;
 run it with `--model <local CustomVoice model> --output <folder> --speakers Vivian`.
+Add `--pet loopy` for the Loopy pack; text and per-action delivery are recorded
+alongside each generated WAV. Both packs use the same local model with different instructions.
 It needs `qwen-tts` and CUDA PyTorch in an isolated Python environment. Convert the
 resulting WAV files to 24 kHz/96 kbps MP3 with FFmpeg (`loudnorm=I=-18:TP=-1.5:LRA=11`).
 `scripts/dev/runner-pet-voice.py` preserves the earlier Edge speech experiment.

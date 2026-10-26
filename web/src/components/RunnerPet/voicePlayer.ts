@@ -1,30 +1,36 @@
-export type PetVoice = 'interact' | 'celebrate' | 'bored'
+import type { RunnerPetType } from './catalog'
+
+export type PetVoice = 'interact' | 'drag' | 'celebrate' | 'bored'
+const VOICE_PACKS: Record<RunnerPetType, Record<PetVoice, string>> = {
+    companion: { interact: 'voice-v1/interact', drag: 'voice-v1/interact', celebrate: 'voice-v1/celebrate', bored: 'voice-v1/bored' },
+    loopy: { interact: 'loopy-voice-v1/interact', drag: 'loopy-voice-v1/drag', celebrate: 'loopy-voice-v1/celebrate', bored: 'loopy-voice-v1/bored' },
+}
 
 /** Preloaded clips; no microphone, speech service, or queued background speech. */
 export class PetVoicePlayer {
     private context: AudioContext | null = null
-    private buffers = new Map<PetVoice, AudioBuffer>()
+    private buffers = new Map<string, AudioBuffer>()
     private source: AudioBufferSourceNode | null = null
     private playing: PetVoice | null = null
     private lastInteraction = -Infinity
     private abort = new AbortController()
 
-    constructor() {
+    constructor(private pet: RunnerPetType) {
         if (typeof AudioContext === 'undefined') return
         try { this.context = new AudioContext() } catch { return }
-        for (const name of ['interact', 'celebrate', 'bored'] as const) {
-            void this.load(name)
+        for (const path of new Set(Object.values(VOICE_PACKS[pet]))) {
+            void this.load(path)
         }
     }
 
-    private async load(name: PetVoice) {
+    private async load(path: string) {
         const context = this.context
         if (!context) return
         try {
-            const response = await fetch(`${import.meta.env.BASE_URL}pets/voice-v1/${name}.mp3`, { signal: this.abort.signal })
+            const response = await fetch(`${import.meta.env.BASE_URL}pets/${path}.mp3`, { signal: this.abort.signal })
             if (!response.ok) return
             const buffer = await context.decodeAudioData(await response.arrayBuffer())
-            if (!this.abort.signal.aborted) this.buffers.set(name, buffer)
+            if (!this.abort.signal.aborted) this.buffers.set(path, buffer)
         } catch { /* Unavailable audio never interrupts the pet or chat. */ }
     }
 
@@ -34,9 +40,10 @@ export class PetVoicePlayer {
     }
 
     play(name: PetVoice): boolean {
-        const context = this.context, buffer = this.buffers.get(name)
+        const context = this.context, buffer = this.buffers.get(VOICE_PACKS[this.pet][name])
         if (!context || context.state !== 'running' || !buffer) return false
-        if (name === 'interact' && Date.now() - this.lastInteraction < 3000) return false
+        const interaction = name === 'interact' || name === 'drag'
+        if (interaction && Date.now() - this.lastInteraction < 3000) return false
         // Completion takes priority; repeated events must not restart the same line.
         if (this.source && (this.playing === name || this.playing === 'celebrate' || name === 'bored')) return false
         this.stop()
@@ -50,7 +57,7 @@ export class PetVoicePlayer {
         this.source = source
         this.playing = name
         source.start()
-        if (name === 'interact') this.lastInteraction = Date.now()
+        if (interaction) this.lastInteraction = Date.now()
         return true
     }
 

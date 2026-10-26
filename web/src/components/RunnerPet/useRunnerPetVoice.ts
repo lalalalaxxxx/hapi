@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { PetVoicePlayer } from './voicePlayer'
+import type { RunnerPetType } from './catalog'
 
 export function useRunnerPetVoice(options: {
     enabled: boolean
     visible: boolean
     machineId: string
+    pet: RunnerPetType
 }) {
     const player = useRef<PetVoicePlayer | null>(null)
     const current = useRef(options)
@@ -14,10 +16,10 @@ export function useRunnerPetVoice(options: {
 
     useEffect(() => {
         if (!options.enabled) return
-        const audio = new PetVoicePlayer()
+        const audio = new PetVoicePlayer(options.pet)
         player.current = audio
         return () => { audio.dispose(); player.current = null }
-    }, [options.enabled])
+    }, [options.enabled, options.pet])
 
     useEffect(() => {
         if (!options.visible || !options.enabled) return
@@ -45,8 +47,11 @@ export function useRunnerPetVoice(options: {
     const celebrate = useCallback(() => {
         if (canPlay()) player.current?.play('celebrate')
     }, [])
+    const drag = useCallback(() => {
+        if (canPlay()) player.current?.play('drag')
+    }, [])
     const bored = useCallback(() => {
         if (canPlay()) player.current?.play('bored')
     }, [])
-    return { interaction, celebrate, bored }
+    return { interaction, drag, celebrate, bored }
 }
