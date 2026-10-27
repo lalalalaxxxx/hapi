@@ -8,25 +8,43 @@
   "animations": {
     "pendulum": {
       "title": "2 Phút Hơn (KAIZ Remix)",
-      "start": 52.0,
+      "start": 56.25,
       "beat": 0.46875,
+      "hookBeats": 8,
+      "poseIndices": [
+        6,
+        7,
+        8,
+        9
+      ],
       "reference": "https://www.bilibili.com/video/BV1sq4y1k7PD/",
       "durationMs": 10000,
       "fps": 24,
       "frames": 240,
-      "keyframes": 16,
-      "atlasBytes": 2290900
+      "keyframes": 4,
+      "hookDurationSeconds": 3.75,
+      "loopedHook": true,
+      "atlasBytes": 2423170
     },
     "bounce": {
       "title": "We Are Perfect",
-      "start": 3.2,
+      "start": 9.5,
       "beat": 0.5,
+      "hookBeats": 8,
+      "poseIndices": [
+        6,
+        7,
+        8,
+        9
+      ],
       "reference": "https://www.bilibili.com/video/BV1HK4y1R7km/",
       "durationMs": 10000,
       "fps": 24,
       "frames": 240,
-      "keyframes": 16,
-      "atlasBytes": 2142736
+      "keyframes": 4,
+      "hookDurationSeconds": 4.0,
+      "loopedHook": true,
+      "atlasBytes": 1714144
     }
   }
 }

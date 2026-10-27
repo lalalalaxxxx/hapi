@@ -115,13 +115,17 @@ both speech and BGM; muted clicks animate silently. Reduced-motion mode keeps th
 ordinary static interaction unless the user chooses “Always animate.” Loopy retains its
 own interactions and voice pack.
 
-`scripts/dev/runner-pet-dances.py` packages 16 subscription-generated keyframes per
-dance with optical-flow inbetweens into `public/pets/bobo-dance-v1/`. These are adapted
-dance phrases, not motion-captured reproductions or 240 independently drawn poses.
-The manifest records BGM titles, reference links, excerpt offsets, and atlas dimensions.
-“2 Phút Hơn (KAIZ Remix)” uses the 52–62 second excerpt of the linked pendulum
-reference; “We Are Perfect” uses 3.2–13.2 seconds of the bounce reference. Local source
-PNGs, reference clips and preview videos live in `output/imagegen/bobo-dances-v1/`;
+`scripts/dev/runner-pet-dances.py` packages four selected subscription-generated core poses per
+dance with optical-flow inbetweens into `public/pets/bobo-dance-v2/`. Pendulum repeats
+the hands-behind-head sway; bounce repeats the knee-bend/rebound, with no introductory
+gestures or neutral outro. These are adapted dance loops, not motion-captured
+reproductions or 240 independently drawn poses. The manifest records source poses,
+BGM titles, reference links, hook offsets, and atlas dimensions.
+“2 Phút Hơn (KAIZ Remix)” loops the 56.25–60 second hook of the linked pendulum
+reference; “We Are Perfect” loops 9.5–13.5 seconds of the bounce reference. Each
+eight-beat hook repeats to fill 10 seconds, with short edge ramps to avoid clicks.
+Local source PNGs and reference clips live in `output/imagegen/bobo-dances-v1/`,
+and the hook-only previews live in `output/imagegen/bobo-dances-v2/`;
 only the packaged atlases, 10-second MP3 clips and manifest are shipped.
 
 The original companion's three Mandarin MP3 clips in `public/pets/voice-v1/` respond to

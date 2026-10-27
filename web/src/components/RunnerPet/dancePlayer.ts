@@ -23,7 +23,7 @@ export class BoboDancePlayer {
     }
 
     private async load(id: BoboDance): Promise<DancePack | null> {
-        const base = `${import.meta.env.BASE_URL}pets/bobo-dance-v1/${id}`
+        const base = `${import.meta.env.BASE_URL}pets/bobo-dance-v2/${id}`
         const audio = this.context ? fetch(`${base}.mp3`, { signal: this.abort.signal })
             .then(async response => response.ok ? this.context?.decodeAudioData(await response.arrayBuffer()) ?? null : null)
             .catch(() => null) : Promise.resolve(null)
