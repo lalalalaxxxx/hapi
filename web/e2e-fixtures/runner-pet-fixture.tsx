@@ -42,7 +42,7 @@ function Preview() {
                     const support = document.querySelector('.runner-pet')?.getAttribute('data-support')
                     setMessages(values => values.filter(id => `preview-message-${id}` !== support))
                 }}>移除脚下消息</button>}
-                {hidden && <button onClick={() => setHidden(false)}>叫点点回来</button>}
+                {hidden && <button onClick={() => setHidden(false)}>叫小伙伴回来</button>}
             </div>
             <p style={{ color: 'var(--app-hint)', fontSize: 11, marginTop: 18 }}>交互预览 · 使用模拟状态</p>
             <details style={{ maxWidth: 390, marginTop: 24 }}>

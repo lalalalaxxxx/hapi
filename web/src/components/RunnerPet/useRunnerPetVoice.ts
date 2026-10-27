@@ -53,5 +53,6 @@ export function useRunnerPetVoice(options: {
     const bored = useCallback(() => {
         if (canPlay()) player.current?.play('bored')
     }, [])
-    return { interaction, drag, celebrate, bored }
+    const stop = useCallback(() => { player.current?.stop() }, [])
+    return { interaction, drag, celebrate, bored, stop }
 }

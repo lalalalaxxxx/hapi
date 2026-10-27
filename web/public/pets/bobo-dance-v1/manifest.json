@@ -1,0 +1,32 @@
+{
+  "source": "Subscription built-in image_gen keyframes; optical-flow inbetweens",
+  "frameSize": [
+    160,
+    240
+  ],
+  "columns": 16,
+  "animations": {
+    "pendulum": {
+      "title": "2 Phút Hơn (KAIZ Remix)",
+      "start": 52.0,
+      "beat": 0.46875,
+      "reference": "https://www.bilibili.com/video/BV1sq4y1k7PD/",
+      "durationMs": 10000,
+      "fps": 24,
+      "frames": 240,
+      "keyframes": 16,
+      "atlasBytes": 2290900
+    },
+    "bounce": {
+      "title": "We Are Perfect",
+      "start": 3.2,
+      "beat": 0.5,
+      "reference": "https://www.bilibili.com/video/BV1HK4y1R7km/",
+      "durationMs": 10000,
+      "fps": 24,
+      "frames": 240,
+      "keyframes": 16,
+      "atlasBytes": 2142736
+    }
+  }
+}

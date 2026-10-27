@@ -20,6 +20,8 @@ import { useRunnerPetMotion } from './useRunnerPetMotion'
 import { useRunnerPetRoaming } from './useRunnerPetRoaming'
 import { useRunnerPetWorld } from './petWorld'
 import { useRunnerPetPhysics } from './useRunnerPetPhysics'
+import { useRunnerPetDance } from './useRunnerPetDance'
+import { RunnerPetDance } from './RunnerPetDance'
 import './runner-pet.css'
 
 export function RunnerPet(props: {
@@ -48,12 +50,23 @@ export function RunnerPet(props: {
     const { runnerPetVoiceEnabled, setRunnerPetVoiceEnabled } = useRunnerPetVoicePreference()
     const voiceVisible = visible && position.style.visibility !== 'hidden'
     const voice = useRunnerPetVoice({ enabled: runnerPetVoiceEnabled, visible: voiceVisible, machineId: selectedId, pet: settings.pet })
+    const dance = useRunnerPetDance({ enabled: settings.pet === 'companion' && animated,
+        available: voiceVisible && !position.dragging && state.mood !== 'offline' && state.mood !== 'connecting',
+        sound: runnerPetVoiceEnabled, machineId: selectedId })
     const { animation, interact: animateInteraction } = useRunnerPetAnimation({
-        ...props, mood: state.mood, machineId: selectedId, visible, onCelebrate: voice.celebrate,
+        ...props, mood: state.mood, machineId: selectedId, visible,
+        onCelebrate: () => { dance.cancel(); voice.celebrate() },
     })
-    const interact = () => { animateInteraction(); voice.interaction() }
+    const interact = () => {
+        if (animation === 'celebrate' || dance.busy) return
+        animateInteraction()
+        if (settings.pet === 'companion' && animated && state.mood !== 'offline' && state.mood !== 'connecting') {
+            voice.stop()
+            void dance.start()
+        } else voice.interaction()
+    }
     const world = useRunnerPetWorld()
-    const canMove = settings.roaming && animated && voiceVisible && !open && !position.dragging
+    const canMove = settings.roaming && animated && voiceVisible && !open && !position.dragging && !dance.busy
         && ['idle', 'bored', 'working'].includes(animation)
     const freeRoaming = useRunnerPetRoaming({
         enabled: canMove && !hovered && !world,
@@ -70,11 +83,12 @@ export function RunnerPet(props: {
     }, [settings.pet, animated, visible, physics.poof])
     useEffect(() => { if (position.dragging) voice.drag() }, [position.dragging, voice.drag])
     useEffect(() => {
-        if (!runnerPetVoiceEnabled || !voiceVisible || position.dragging || animation !== 'bored' || state.mood !== 'idle') return
+        if (!runnerPetVoiceEnabled || !voiceVisible || position.dragging || dance.busy || animation !== 'bored' || state.mood !== 'idle') return
         const timer = setInterval(voice.bored, 60_000)
         return () => clearInterval(timer)
-    }, [runnerPetVoiceEnabled, voiceVisible, position.dragging, animation, state.mood, selectedId, voice.bored])
-    const message = animation === 'happy' || animation === 'tap' ? t('runner.pet.happy')
+    }, [runnerPetVoiceEnabled, voiceVisible, position.dragging, dance.busy, animation, state.mood, selectedId, voice.bored])
+    const message = dance.playback ? t(`runner.pet.dance.${dance.playback.id}`)
+        : animation === 'happy' || animation === 'tap' ? t('runner.pet.happy')
         : animation === 'bored' || animation === 'celebrate' ? t(`runner.pet.message.${animation}`)
             : t(`runner.pet.message.${state.mood}`)
 
@@ -93,8 +107,9 @@ export function RunnerPet(props: {
                         onPointerLeave={() => setHovered(false)}
                         onClick={event => { if (!position.consumeDragClick(event)) interact() }}
                         aria-label={`${petTitle}: ${moodText}`} title={t('runner.pet.open')}>
-                        <RunnerPetSprite key={settings.pet} pet={settings.pet} motion={settings.motion}
-                            animation={position.dragging ? 'drag' : roaming.motion ?? animation} paused={!visible} />
+                        {dance.playback && !position.dragging ? <RunnerPetDance playback={dance.playback} />
+                            : <RunnerPetSprite key={settings.pet} pet={settings.pet} motion={settings.motion}
+                                animation={position.dragging ? 'drag' : roaming.motion ?? animation} paused={!visible} />}
                     </button>
                 </Popover.Trigger>
                 <Popover.Portal>
@@ -107,8 +122,10 @@ export function RunnerPet(props: {
                         <div className="runner-pet-scene" data-mood={state.mood} data-paused={!visible || undefined}>
                             <span className="runner-pet-scene-dot runner-pet-scene-dot-a" aria-hidden="true" />
                             <span className="runner-pet-scene-dot runner-pet-scene-dot-b" aria-hidden="true" />
-                            <button type="button" className="runner-pet-pat" onClick={interact} aria-label={t('runner.pet.pat')}>
-                                <RunnerPetSprite key={settings.pet} pet={settings.pet} motion={settings.motion} animation={animation} paused={!visible} />
+                            <button type="button" className="runner-pet-pat" onClick={interact}
+                                aria-label={t(settings.pet === 'companion' ? 'runner.pet.pat' : 'runner.pet.pat.loopy')}>
+                                {dance.playback ? <RunnerPetDance playback={dance.playback} />
+                                    : <RunnerPetSprite key={settings.pet} pet={settings.pet} motion={settings.motion} animation={animation} paused={!visible} />}
                             </button>
                             <p role="status">{message}</p>
                         </div>

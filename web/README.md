@@ -105,8 +105,27 @@ Preview these scenarios with `/e2e-fixtures/runner-pet-fixture.html?physics=1`.
 
 ### Runner companion voice
 
-The original companion's three Mandarin MP3 clips in `public/pets/voice-v1/` respond to clicking
-or starting a drag (啊，不要啦), validated task completion
+The original companion is named Bobo (波波). With animation enabled, clicking Bobo
+randomly selects a 10-second pendulum or bounce dance; the detail panel still opens.
+Both views draw from one clock, with 240 transparent frames at 24 fps. Repeated clicks
+during playback do not restart or layer music. Pickup, focus loss, hiding, character or
+machine changes, going offline, and validated task completion cancel the dance.
+Roaming and boredom reminders pause during the dance. The existing sound switch controls
+both speech and BGM; muted clicks animate silently. Reduced-motion mode keeps the
+ordinary static interaction unless the user chooses “Always animate.” Loopy retains its
+own interactions and voice pack.
+
+`scripts/dev/runner-pet-dances.py` packages 16 subscription-generated keyframes per
+dance with optical-flow inbetweens into `public/pets/bobo-dance-v1/`. These are adapted
+dance phrases, not motion-captured reproductions or 240 independently drawn poses.
+The manifest records BGM titles, reference links, excerpt offsets, and atlas dimensions.
+“2 Phút Hơn (KAIZ Remix)” uses the 52–62 second excerpt of the linked pendulum
+reference; “We Are Perfect” uses 3.2–13.2 seconds of the bounce reference. Local source
+PNGs, reference clips and preview videos live in `output/imagegen/bobo-dances-v1/`;
+only the packaged atlases, 10-second MP3 clips and manifest are shipped.
+
+The original companion's three Mandarin MP3 clips in `public/pets/voice-v1/` respond to
+non-dance clicks (for example reduced motion) or starting a drag (啊，不要啦), validated task completion
 (终于做完啦，快来看看吧～), and each full minute spent bored
 (快来陪我玩玩吧). Loopy uses four separate clips in `public/pets/loopy-voice-v2/`:
 click/pat (痒！痒！痒！), pickup/drag (嘿嘿，飞起来咯), boredom
