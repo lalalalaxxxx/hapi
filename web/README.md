@@ -107,7 +107,9 @@ Preview these scenarios with `/e2e-fixtures/runner-pet-fixture.html?physics=1`.
 
 The original companion is named Bobo (波波). With animation enabled, clicking Bobo
 randomly selects a 10-second pendulum or bounce dance; the detail panel still opens.
-Both views draw from one clock, with 240 transparent frames at 24 fps. Repeated clicks
+Both views draw from one clock, with 240 transparent frames at 24 fps. Audio is scheduled
+on the Web Audio clock; the visual start maps to the browser's output timestamp (or
+reported output latency while that timestamp is unavailable). Repeated clicks
 during playback do not restart or layer music. Pickup, focus loss, hiding, character or
 machine changes, going offline, and validated task completion cancel the dance.
 Roaming and boredom reminders pause during the dance. The existing sound switch controls
@@ -119,19 +121,22 @@ own interactions and voice pack.
 inbetweens into `public/pets/bobo-dance-v2/`. Pendulum uses newly generated full-body
 weight-transfer poses, ordered into an eight-key cycle (six distinct drawings), with
 the stance registered at the feet. The hips, thighs, knees and counterbalancing upper
-body move together. Its `pendulum-v3` asset follows the motion reference
+body move together. Its `pendulum-v4` asset follows the motion reference
 https://www.bilibili.com/video/BV147dYBLEqd/ and completes a cycle every two beats.
 Bounce retains its four-pose knee-bend/rebound loop. Neither includes introductory
 gestures or a neutral outro. These are adapted dance loops, not motion-captured
 reproductions or 240 independently drawn poses. The manifest records source poses,
 BGM titles, reference links, hook offsets, and atlas dimensions.
-“2 Phút Hơn (KAIZ Remix)” loops the 56.25–60 second hook of the linked pendulum
-reference; “We Are Perfect” loops 9.5–13.5 seconds of the bounce reference. Each
-eight-beat hook repeats to fill 10 seconds, with short edge ramps to avoid clicks.
+Pendulum now uses the same user-provided video's continuous 2.9–12.9 second soundtrack,
+without splicing a short loop. The measured beat grid is 128 BPM with its first beat
+58 ms into the clip; alternating left/right extrema land on that grid. “We Are Perfect”
+still loops 9.5–13.5 seconds of the bounce reference to fill 10 seconds.
 Local source PNGs and reference clips live in `output/imagegen/bobo-dances-v1/`,
 and the original hook-only previews live in `output/imagegen/bobo-dances-v2/`.
 The revised pendulum source, pose guide, final prompt (`pendulum-v3.prompt.txt`) and
-preview live in `output/imagegen/bobo-pendulum-v3/`. Use `--only pendulum` to rebuild
+original preview live in `output/imagegen/bobo-pendulum-v3/`. The synchronized preview
+and beat-versus-turn verification live in `output/imagegen/bobo-pendulum-v4/`.
+Use `--only pendulum` to rebuild
 that dance while preserving the bounce manifest entry;
 only the packaged atlases, 10-second MP3 clips and manifest are shipped.
 

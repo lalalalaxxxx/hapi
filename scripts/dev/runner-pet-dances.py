@@ -1,7 +1,7 @@
 """Package subscription-generated Bobo dance poses into 24 fps / 10 s atlases.
 
 Requires Pillow, numpy, OpenCV and imageio-ffmpeg. No image or music generation API.
-Local reference hooks are looped into the two requested 10-second BGM tracks.
+Local reference clips provide the two requested 10-second BGM tracks.
 """
 from pathlib import Path
 import importlib.util
@@ -15,19 +15,21 @@ import imageio_ffmpeg
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'output/imagegen/bobo-dances-v1'
-PREVIEWS = ROOT / 'output/imagegen/bobo-pendulum-v3'
+PREVIEWS = ROOT / 'output/imagegen/bobo-pendulum-v4'
 DEST = ROOT / 'web/public/pets/bobo-dance-v2'
 SIZE = (160, 240)
 FPS = 24
 FRAMES = 240
 CLIPS = {
-    'pendulum': {'title': '2 Phút Hơn (KAIZ Remix)', 'start': 56.25, 'beat': .46875,
+    'pendulum': {'title': 'User-provided pendulum reference soundtrack', 'start': 2.9, 'beat': .46875,
                  # Generated cells are not chronological; order by the visible weight transfer.
-                 'hookBeats': 8, 'poseIndices': [7, 5, 6, 1, 0, 1, 2, 5], 'cycleBeats': 2, 'gridRows': 2,
+                 'poseIndices': [7, 5, 6, 1, 0, 1, 2, 5], 'cycleBeats': 2, 'gridRows': 2,
+                 'beatOffsetSeconds': .058, 'audioDurationSeconds': 10,
+                 'audioSource': 'output/imagegen/bobo-pendulum-v3/reference.mp4',
                  'artSource': 'output/imagegen/bobo-pendulum-v3/pendulum.png',
-                 'assetName': 'pendulum-v3', 'anchorFeet': True,
+                 'assetName': 'pendulum-v4', 'anchorFeet': True,
                  'motionReference': 'https://www.bilibili.com/video/BV147dYBLEqd/',
-                 'reference': 'https://www.bilibili.com/video/BV1sq4y1k7PD/'},
+                 'reference': 'https://www.bilibili.com/video/BV147dYBLEqd/'},
     'bounce': {'title': 'We Are Perfect', 'start': 9.5, 'beat': .5,
                'hookBeats': 8, 'poseIndices': [6, 7, 8, 9],
                'reference': 'https://www.bilibili.com/video/BV1HK4y1R7km/'},
@@ -68,7 +70,7 @@ def poses(path, anchor_feet=False, rows=4):
     return [output[i] for i in range(expected)]
 
 
-def render(keys, beat, cycle_beats=None):
+def render(keys, beat, cycle_beats=None, beat_offset=0):
     count = len(keys)
     key_duration = beat * cycle_beats / count if cycle_beats else beat / 2
     prepared = [smooth.prepare(frame) for frame in keys]
@@ -77,8 +79,8 @@ def render(keys, beat, cycle_beats=None):
               flow.calc(prepared[(i+1)%count][1], prepared[i][1], None)) for i in range(count)]
     output = []
     for tick in range(FRAMES):
-        position = tick / FPS / key_duration
-        index = int(position) % count
+        position = (tick / FPS - beat_offset) / key_duration
+        index = int(np.floor(position)) % count
         fraction = position % 1
         a, b = prepared[index][0], prepared[(index+1)%count][0]
         frame = smooth.tween(a, b, *flows[index], fraction)
@@ -102,16 +104,18 @@ def main(only=None):
         contact = Image.new('RGBA', (SIZE[0]*4, SIZE[1]*int(np.ceil(len(keys)/4))))
         for i, frame in enumerate(keys): contact.alpha_composite(frame, (i%4*SIZE[0], i//4*SIZE[1]))
         contact.save(PREVIEWS / f'{name}-cutouts.png')
-        frames = render(keys, config['beat'], config.get('cycleBeats'))
+        frames = render(keys, config['beat'], config.get('cycleBeats'), config.get('beatOffsetSeconds', 0))
         atlas = Image.new('RGBA', (SIZE[0]*16, SIZE[1]*15))
         for i, frame in enumerate(frames): atlas.alpha_composite(frame, (i%16*SIZE[0], i//16*SIZE[1]))
         atlas.save(DEST / f'{asset}.webp', quality=90, method=4)
         assert (DEST / f'{asset}.webp').stat().st_size < 3*1024*1024
         # Decode before slicing: reference-container timestamps can shorten a seek.
-        pcm = subprocess.check_output([ffmpeg, '-v', 'error', '-i', str(SOURCE / f'{name}-reference.mp4'),
+        audio_source = ROOT / config['audioSource'] if 'audioSource' in config else SOURCE / f'{name}-reference.mp4'
+        pcm = subprocess.check_output([ffmpeg, '-v', 'error', '-i', str(audio_source),
             '-vn', '-af', 'loudnorm=I=-20:TP=-2:LRA=11',
             '-ar', '24000', '-ac', '1', '-f', 'f32le', '-'])
-        hook_length = round(config['hookBeats'] * config['beat'] * 24000)
+        hook_seconds = config['audioDurationSeconds'] if 'audioDurationSeconds' in config else config['hookBeats'] * config['beat']
+        hook_length = round(hook_seconds * 24000)
         start = round(config['start'] * 24000)
         hook = np.frombuffer(pcm, dtype=np.float32)[start:start+hook_length].copy()
         assert len(hook) == hook_length, f'{name}: reference hook is truncated'
@@ -139,7 +143,7 @@ def main(only=None):
             assert process.wait() == 0
         report[name] = {**config, 'durationMs': 10000, 'fps': FPS, 'frames': FRAMES,
                         'keyframes': len(keys), 'hookDurationSeconds': hook_length / 24000,
-                        'loopedHook': True, 'atlasBytes': (DEST/f'{asset}.webp').stat().st_size}
+                        'loopedHook': hook_length < 240000, 'atlasBytes': (DEST/f'{asset}.webp').stat().st_size}
         print(name, json.dumps(report[name], ensure_ascii=True), flush=True)
     (DEST / 'manifest.json').write_text(json.dumps({'source': 'Subscription built-in image_gen keyframes; optical-flow inbetweens',
         'frameSize': SIZE, 'columns': 16, 'animations': report}, indent=2, ensure_ascii=False)+'\n', encoding='utf-8', newline='\n')

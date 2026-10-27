@@ -23,7 +23,7 @@ export class BoboDancePlayer {
     }
 
     private async load(id: BoboDance): Promise<DancePack | null> {
-        const asset = id === 'pendulum' ? 'pendulum-v3' : id
+        const asset = id === 'pendulum' ? 'pendulum-v4' : id
         const base = `${import.meta.env.BASE_URL}pets/bobo-dance-v2/${asset}`
         const audio = this.context ? fetch(`${base}.mp3`, { signal: this.abort.signal })
             .then(async response => response.ok ? this.context?.decodeAudioData(await response.arrayBuffer()) ?? null : null)
@@ -51,8 +51,18 @@ export class BoboDancePlayer {
             ? this.context.resume().catch(() => {}) : Promise.resolve()
         const [pack] = await Promise.all([this.packs.get(id), resume])
         if (!pack || this.abort.signal.aborted || request !== this.request) return null
-        const startedAt = performance.now()
+        let startedAt = performance.now()
         if (sound && pack.audio && this.context?.state === 'running') {
+            const audioStart = this.context.currentTime + 0.03
+            // Map the scheduled sample to when it reaches the speakers, so the canvas
+            // and its end timer don't run ahead of buffered audio on phones/headphones.
+            const output = this.context.getOutputTimestamp?.()
+            if (output && output.contextTime !== undefined && output.performanceTime !== undefined
+                && output.performanceTime > 0 && output.contextTime > 0) {
+                startedAt = output.performanceTime + (audioStart - output.contextTime) * 1000
+            } else {
+                startedAt += (0.03 + (this.context.baseLatency || 0) + (this.context.outputLatency || 0)) * 1000
+            }
             const source = this.context.createBufferSource()
             source.buffer = pack.audio
             source.connect(this.context.destination)
@@ -61,7 +71,7 @@ export class BoboDancePlayer {
                 if (this.source === source) this.source = null
             }
             this.source = source
-            source.start(0, 0, DANCE_DURATION / 1000)
+            source.start(audioStart, 0, DANCE_DURATION / 1000)
         }
         return { id, image: pack.image, startedAt }
     }

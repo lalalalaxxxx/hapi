@@ -6,10 +6,16 @@ describe('Bobo dance media lifecycle', () => {
     const sources: Array<{ start: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> }> = []
     const images: Array<{ close: ReturnType<typeof vi.fn> }> = []
     let state = 'suspended'
+    let outputTimestamp: AudioTimestamp = { contextTime: 0, performanceTime: 0 }
     beforeEach(() => {
         vi.useFakeTimers()
         state = 'suspended'; sources.length = 0; images.length = 0
+        outputTimestamp = { contextTime: 0, performanceTime: 0 }
         vi.stubGlobal('AudioContext', class {
+            currentTime = 40
+            baseLatency = 0.01
+            outputLatency = 0.04
+            getOutputTimestamp = () => outputTimestamp
             get state() { return state }
             resume = vi.fn(async () => { state = 'running' })
             close = vi.fn(async () => {})
@@ -34,10 +40,21 @@ describe('Bobo dance media lifecycle', () => {
         const result = await player.play('bounce', true)
         expect(result?.id).toBe('bounce')
         expect(result?.image).toBe(images[1])
-        expect(sources[0].start).toHaveBeenCalledWith(0, 0, 10)
+        expect(sources[0].start).toHaveBeenCalledWith(40.03, 0, 10)
         await player.play('pendulum', true)
         expect(sources[0].stop).toHaveBeenCalledOnce()
         expect(sources).toHaveLength(2)
+    })
+    it('aligns the visual start and end timer with the audible output clock', async () => {
+        outputTimestamp = { contextTime: 39.92, performanceTime: 1000 }
+        const result = await player.play('pendulum', true)
+        expect(result?.startedAt).toBeCloseTo(1110)
+        expect(sources[0].start).toHaveBeenCalledWith(40.03, 0, 10)
+    })
+    it('accounts for output latency before the browser has an output timestamp', async () => {
+        const now = performance.now()
+        const result = await player.play('pendulum', true)
+        expect(result?.startedAt).toBeCloseTo(now + 80)
     })
     it('renders silently when muted without starting or queueing a sound', async () => {
         expect((await player.play('pendulum', false))?.id).toBe('pendulum')

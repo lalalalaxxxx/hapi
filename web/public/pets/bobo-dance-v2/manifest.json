@@ -7,10 +7,9 @@
   "columns": 16,
   "animations": {
     "pendulum": {
-      "title": "2 Phút Hơn (KAIZ Remix)",
-      "start": 56.25,
+      "title": "User-provided pendulum reference soundtrack",
+      "start": 2.9,
       "beat": 0.46875,
-      "hookBeats": 8,
       "poseIndices": [
         7,
         5,
@@ -23,18 +22,21 @@
       ],
       "cycleBeats": 2,
       "gridRows": 2,
+      "beatOffsetSeconds": 0.058,
+      "audioDurationSeconds": 10,
+      "audioSource": "output/imagegen/bobo-pendulum-v3/reference.mp4",
       "artSource": "output/imagegen/bobo-pendulum-v3/pendulum.png",
-      "assetName": "pendulum-v3",
+      "assetName": "pendulum-v4",
       "anchorFeet": true,
       "motionReference": "https://www.bilibili.com/video/BV147dYBLEqd/",
-      "reference": "https://www.bilibili.com/video/BV1sq4y1k7PD/",
+      "reference": "https://www.bilibili.com/video/BV147dYBLEqd/",
       "durationMs": 10000,
       "fps": 24,
       "frames": 240,
       "keyframes": 8,
-      "hookDurationSeconds": 3.75,
-      "loopedHook": true,
-      "atlasBytes": 2327674
+      "hookDurationSeconds": 10.0,
+      "loopedHook": false,
+      "atlasBytes": 2425368
     },
     "bounce": {
       "title": "We Are Perfect",
