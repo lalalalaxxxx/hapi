@@ -115,17 +115,24 @@ both speech and BGM; muted clicks animate silently. Reduced-motion mode keeps th
 ordinary static interaction unless the user chooses “Always animate.” Loopy retains its
 own interactions and voice pack.
 
-`scripts/dev/runner-pet-dances.py` packages four selected subscription-generated core poses per
-dance with optical-flow inbetweens into `public/pets/bobo-dance-v2/`. Pendulum repeats
-the hands-behind-head sway; bounce repeats the knee-bend/rebound, with no introductory
-gestures or neutral outro. These are adapted dance loops, not motion-captured
+`scripts/dev/runner-pet-dances.py` packages subscription-generated poses with optical-flow
+inbetweens into `public/pets/bobo-dance-v2/`. Pendulum uses newly generated full-body
+weight-transfer poses, ordered into an eight-key cycle (six distinct drawings), with
+the stance registered at the feet. The hips, thighs, knees and counterbalancing upper
+body move together. Its `pendulum-v3` asset follows the motion reference
+https://www.bilibili.com/video/BV147dYBLEqd/ and completes a cycle every two beats.
+Bounce retains its four-pose knee-bend/rebound loop. Neither includes introductory
+gestures or a neutral outro. These are adapted dance loops, not motion-captured
 reproductions or 240 independently drawn poses. The manifest records source poses,
 BGM titles, reference links, hook offsets, and atlas dimensions.
 “2 Phút Hơn (KAIZ Remix)” loops the 56.25–60 second hook of the linked pendulum
 reference; “We Are Perfect” loops 9.5–13.5 seconds of the bounce reference. Each
 eight-beat hook repeats to fill 10 seconds, with short edge ramps to avoid clicks.
 Local source PNGs and reference clips live in `output/imagegen/bobo-dances-v1/`,
-and the hook-only previews live in `output/imagegen/bobo-dances-v2/`;
+and the original hook-only previews live in `output/imagegen/bobo-dances-v2/`.
+The revised pendulum source, pose guide, final prompt (`pendulum-v3.prompt.txt`) and
+preview live in `output/imagegen/bobo-pendulum-v3/`. Use `--only pendulum` to rebuild
+that dance while preserving the bounce manifest entry;
 only the packaged atlases, 10-second MP3 clips and manifest are shipped.
 
 The original companion's three Mandarin MP3 clips in `public/pets/voice-v1/` respond to

@@ -12,19 +12,29 @@
       "beat": 0.46875,
       "hookBeats": 8,
       "poseIndices": [
-        6,
         7,
-        8,
-        9
+        5,
+        6,
+        1,
+        0,
+        1,
+        2,
+        5
       ],
+      "cycleBeats": 2,
+      "gridRows": 2,
+      "artSource": "output/imagegen/bobo-pendulum-v3/pendulum.png",
+      "assetName": "pendulum-v3",
+      "anchorFeet": true,
+      "motionReference": "https://www.bilibili.com/video/BV147dYBLEqd/",
       "reference": "https://www.bilibili.com/video/BV1sq4y1k7PD/",
       "durationMs": 10000,
       "fps": 24,
       "frames": 240,
-      "keyframes": 4,
+      "keyframes": 8,
       "hookDurationSeconds": 3.75,
       "loopedHook": true,
-      "atlasBytes": 2423170
+      "atlasBytes": 2327674
     },
     "bounce": {
       "title": "We Are Perfect",
