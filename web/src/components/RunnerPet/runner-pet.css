@@ -1,5 +1,4 @@
-.runner-pet,
-.runner-pet-scene {
+.runner-pet {
     --pet-ink: #2c8c80;
     --pet-eye: #123c37;
     color: var(--pet-ink);
@@ -9,9 +8,8 @@
     z-index: 35;
     pointer-events: none;
 }
-.runner-pet [data-mood="waiting"], .runner-pet-scene[data-mood="waiting"] { color: #ad761b; }
-.runner-pet [data-mood="offline"], .runner-pet-scene[data-mood="offline"],
-.runner-pet [data-mood="connecting"], .runner-pet-scene[data-mood="connecting"] { color: #7e8a9e; }
+.runner-pet[data-mood="waiting"] { color: #ad761b; }
+.runner-pet[data-mood="offline"], .runner-pet[data-mood="connecting"] { color: #7e8a9e; }
 .runner-pet-trigger {
     display: block;
     width: 100%;
@@ -44,41 +42,8 @@
     20% { opacity: .95; } 100% { opacity: 0; transform: rotate(var(--angle)) translateX(100%) scale(.65); } }
 .runner-pet-sprite { display: block; position: relative; width: 100%; aspect-ratio: 2 / 3; contain: layout paint; }
 .runner-pet-image { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; pointer-events: none; }
-.runner-pet-panel {
-    z-index: 40;
-    width: min(292px, calc(100vw - 24px));
-    max-height: var(--radix-popover-content-available-height);
-    overflow-y: auto;
-    border: 1px solid var(--app-border);
-    border-radius: 22px;
-    background: var(--app-bg);
-    color: var(--app-fg);
-    box-shadow: 0 12px 48px #00000020;
-    padding: 16px;
-}
-.runner-pet-panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
-.runner-pet-panel-heading h2 { font-size: 15px; font-weight: 650; }
-.runner-pet-panel-heading p { font-size: 11px; color: var(--app-hint); margin-top: 3px; }
-.runner-pet-close { width: 32px; height: 32px; border-radius: 50%; font-size: 22px; color: var(--app-hint); cursor: pointer; }
-.runner-pet-close:hover { background: var(--app-subtle-bg); }
-.runner-pet-scene { position: relative; display: flex; flex-direction: column; align-items: center; background: var(--app-subtle-bg); border-radius: 16px; margin: 14px 0; padding: 12px 8px 14px; }
-.runner-pet-pat { display: block; cursor: pointer; border-radius: 24px; }
-.runner-pet-pat .runner-pet-sprite { width: 168px; }
-.runner-pet-scene p { text-align: center; font-size: 12px; color: var(--app-fg); min-height: 32px; max-width: 210px; margin-top: 4px; }
-.runner-pet-scene-dot { position: absolute; border-radius: 50%; background: currentColor; opacity: .2; width: 4px; height: 4px; }
-.runner-pet-scene-dot-a { left: 27px; top: 31px; }
-.runner-pet-scene-dot-b { right: 25px; top: 75px; width: 6px; height: 6px; }
-.runner-pet-machine { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 12px; color: var(--app-hint); }
-.runner-pet-machine select { min-width: 0; flex: 1; padding: 6px; border: 1px solid var(--app-border); border-radius: 8px; background: var(--app-bg); color: var(--app-fg); }
-.runner-pet-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
-.runner-pet-stats dt { font-size: 11px; color: var(--app-hint); }
-.runner-pet-stats dd { font-size: 19px; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
-.runner-pet-actions { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--app-border); padding-top: 12px; margin-top: 14px; font-size: 12px; }
-.runner-pet-actions a { color: var(--app-link); }
-.runner-pet-actions button { color: var(--app-hint); cursor: pointer; }
-.runner-pet-restore { color: var(--app-hint); font-size: 10px; margin-top: 9px; }
-.runner-pet button:focus-visible, .runner-pet-panel button:focus-visible, .runner-pet-panel a:focus-visible { outline: 2px solid var(--app-link); outline-offset: 3px; }
-.runner-pet[data-paused] *, .runner-pet-scene[data-paused] * { animation-play-state: paused !important; }
+.runner-pet button:focus-visible { outline: 2px solid var(--app-link); outline-offset: 3px; }
+.runner-pet[data-paused] * { animation-play-state: paused !important; }
 /* Position and size follow the visual viewport and measured composer bounds. */
 @media (prefers-reduced-motion: reduce) {
     .runner-pet:not([data-motion-mode="always"]) * { animation: none !important; transition: none !important; }

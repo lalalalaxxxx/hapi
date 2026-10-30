@@ -17,23 +17,23 @@ React Mini App / PWA for monitoring and controlling hapi sessions.
 - PWA install prompt and offline banner.
 - Optional unread-session count on the Windows taskbar when installed as an Edge/Chrome PWA (toggleable in Display settings; off by default).
 - An animated Runner companion reflects online, busy, and pending-input states.
-  Its floating button shows only the transparent character. Click it to inspect
-  Runner counts, choose a machine, or give it a pat; drag it to reposition it.
-  Mouse and touch dragging play a separate reaction and never open the panel.
-  The saved position follows viewport changes; arrow keys also move the focused pet. Hide it
-  from its panel and restore it in Display settings. It reuses existing SSE/query
+  Its floating button shows only the transparent character. Click it to trigger
+  its animation and voice/BGM, without opening a panel; drag it to reposition it.
+  Mouse and touch dragging play a separate reaction without triggering a tap.
+  The saved position follows viewport changes; arrow keys also move the focused pet.
+  Hide or restore it in Display settings. It reuses existing SSE/query
   data, pauses animation in hidden tabs, and respects reduced-motion preferences.
   It appears on the session list and inside chats on both desktop and phones.
   The visual viewport and `data-runner-pet-avoid` composer bounds keep it clear
   of the editor and keyboard. It shrinks in tight spaces; only a fully occupied
   viewport temporarily hides it, until room is available again.
-  Display settings and the pet panel can switch between the original companion
+  Display settings can switch between the original companion
   and Loopy (the default when no character has been selected). Existing explicit
   character choices are preserved. Character choice, autonomous movement, and animation mode are saved
   per browser/origin and update other tabs on that origin, not other devices.
   Autonomous walks and jumps run every 5–10 seconds when unobstructed; their
   entire paths avoid the composer. Typing, dragging, hovering, scrolling, open
-  dialogs, and the pet panel pause autonomous actions. In chats, scrolling still
+  dialogs pause autonomous actions. In chats, scrolling still
   carries a pet standing on a message; hovering stops walks but allows landing.
   Reduced-motion preferences disable
   it unless the user explicitly selects Always animate. Disable roaming to keep
@@ -106,8 +106,8 @@ Preview these scenarios with `/e2e-fixtures/runner-pet-fixture.html?physics=1`.
 ### Runner companion voice
 
 The original companion is named Bobo (波波). With animation enabled, clicking Bobo
-randomly selects a 10-second pendulum or bounce dance; the detail panel still opens.
-Both views draw from one clock, with 240 transparent frames at 24 fps. Audio is scheduled
+randomly selects a 10-second pendulum or bounce dance without opening a detail panel.
+The pet canvas uses 240 transparent frames at 24 fps. Audio is scheduled
 on the Web Audio clock; the visual start maps to the browser's output timestamp (or
 reported output latency while that timestamp is unavailable). Repeated clicks
 during playback do not restart or layer music. Pickup, focus loss, hiding, character or
@@ -149,7 +149,7 @@ click/pat (痒！痒！痒！), pickup/drag (嘿嘿，飞起来咯), boredom
 (耶，做好啦！快来看看，我厉害吧！). Its voice instructions specify a young,
 soft, bright cartoon voice with playful surprise, anticipation, and proud excitement.
 The first reminder is 60 seconds after entering boredom. Automatic roaming is silent.
-Voice defaults on; the panel and Display settings share a persistent mute switch.
+Voice defaults on; Display settings provide a persistent mute switch.
 Browser autoplay policy requires an initial user gesture. Missed lines are never
 queued. Hidden/unfocused pages stop audio; completion takes priority over other
 lines, and clicks/drags share a 3-second cooldown. Clips are precached for

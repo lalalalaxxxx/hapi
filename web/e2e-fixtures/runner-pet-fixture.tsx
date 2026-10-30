@@ -29,7 +29,7 @@ function Preview() {
         <main style={{ minHeight: '100dvh', padding: 'clamp(24px, 6vw, 80px)', background: 'var(--app-bg)', color: 'var(--app-fg)' }}>
             <p style={{ color: 'var(--app-hint)', fontSize: 12, letterSpacing: 3 }}>HAPI / RUNNER COMPANION</p>
             <h1 style={{ fontSize: physics ? 24 : 'clamp(24px, 4vw, 40px)', fontWeight: 650, margin: '20px 0 12px' }}>你认真创造，{!physics && <br />}我负责陪伴。</h1>
-            <p style={{ color: 'var(--app-hint)', fontSize: 14 }}>点一点角落里的小伙伴，看看它在忙什么。</p>
+            <p style={{ color: 'var(--app-hint)', fontSize: 14 }}>点一点角落里的小伙伴，和它互动。</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 28, maxWidth: 390 }}>
                 {Object.entries({ idle: '准备好了', working: '忙碌中', waiting: '等你回应', offline: '休息中', connecting: '连接中' }).map(([value, label]) =>
                     <button key={value} onClick={() => setMood(value)} style={{ border: '1px solid var(--app-border)', borderRadius: 20, padding: '8px 14px', fontSize: 12,
@@ -42,7 +42,7 @@ function Preview() {
                     const support = document.querySelector('.runner-pet')?.getAttribute('data-support')
                     setMessages(values => values.filter(id => `preview-message-${id}` !== support))
                 }}>移除脚下消息</button>}
-                {hidden && <button onClick={() => setHidden(false)}>叫小伙伴回来</button>}
+                <button onClick={() => setHidden(value => !value)}>{hidden ? '叫小伙伴回来' : '隐藏小伙伴'}</button>
             </div>
             <p style={{ color: 'var(--app-hint)', fontSize: 11, marginTop: 18 }}>交互预览 · 使用模拟状态</p>
             <details style={{ maxWidth: 390, marginTop: 24 }}>
@@ -64,7 +64,7 @@ function Preview() {
             <textarea aria-label="消息输入框" style={{ width: '100%', height: '100%', resize: 'none' }} />
         </div>}
         {!hidden && <RunnerPet machines={[{ ...machine, active: mood !== 'offline' }]} sessions={[{ ...session, thinking: mood === 'working', pendingRequestsCount: mood === 'waiting' ? 1 : 0 }]}
-            connected={mood !== 'connecting'} onHide={() => setHidden(true)} />}
+            connected={mood !== 'connecting'} />}
     </I18nProvider>
 }
 

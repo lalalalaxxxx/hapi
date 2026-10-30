@@ -4,40 +4,36 @@ import type { Machine } from '@/types/api'
 import { RunnerPet } from './index'
 
 vi.mock('@/lib/use-translation', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
-vi.mock('@tanstack/react-router', () => ({ Link: (props: { children: React.ReactNode; to: string; onClick?: () => void }) => <a href={props.to} onClick={props.onClick}>{props.children}</a> }))
 
 const machine: Machine = { id: 'runner', namespace: 'default', active: true, activeAt: 0, seq: 0, createdAt: 0, updatedAt: 0,
     metadata: null, metadataVersion: 0, runnerState: { status: 'running' }, runnerStateVersion: 0 }
 
 describe('Runner companion interactions', () => {
     afterEach(() => { vi.useRealTimers() })
-    it('opens an accessible panel, reacts to a pat, and can be hidden', () => {
+    it('reacts to a click without opening a panel', () => {
         vi.useFakeTimers()
-        const hide = vi.fn()
-        render(<RunnerPet machines={[machine]} sessions={[]} connected onHide={hide} />)
+        const { container } = render(<RunnerPet machines={[machine]} sessions={[]} connected />)
         fireEvent.click(screen.getByRole('button', { name: /runner.pet.character.loopy/ }))
-        expect(screen.getByRole('dialog', { name: 'runner.pet.character.loopy' })).toBeInTheDocument()
-        fireEvent.click(screen.getByRole('button', { name: 'runner.pet.pat.loopy' }))
-        expect(screen.getByRole('status')).toHaveTextContent('runner.pet.happy')
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+        expect(screen.getByRole('button')).not.toHaveAttribute('aria-haspopup')
+        expect(container.querySelector('[data-animation="tap"]')).toBeInTheDocument()
         act(() => { vi.advanceTimersByTime(4000) })
-        expect(screen.getByRole('status')).toHaveTextContent('runner.pet.message.idle')
-        fireEvent.click(screen.getByRole('button', { name: 'runner.pet.hide' }))
-        expect(hide).toHaveBeenCalledOnce()
+        expect(container.querySelector('[data-animation="idle"]')).toBeInTheDocument()
     })
     it('cleans up the interaction timer when unmounted', () => {
         vi.useFakeTimers()
         const clear = vi.spyOn(globalThis, 'clearTimeout')
-        const view = render(<RunnerPet machines={[machine]} sessions={[]} connected onHide={() => {}} />)
+        const view = render(<RunnerPet machines={[machine]} sessions={[]} connected />)
         fireEvent.click(screen.getByRole('button', { name: /runner.pet.character.loopy/ }))
-        fireEvent.click(screen.getByRole('button', { name: 'runner.pet.pat.loopy' }))
         clear.mockClear()
         view.unmount()
         expect(clear).toHaveBeenCalled()
         clear.mockRestore()
     })
-    it('uses unknown status rather than stale online counts after disconnect', () => {
-        render(<RunnerPet machines={[machine]} sessions={[]} connected={false} onHide={() => {}} />)
+    it('keeps the disconnected status accessible without opening a panel', () => {
+        render(<RunnerPet machines={[machine]} sessions={[]} connected={false} />)
         fireEvent.click(screen.getByRole('button', { name: /runner.pet.state.connecting/ }))
-        expect(screen.getAllByText('—')).toHaveLength(3)
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+        expect(screen.getByRole('button')).toHaveAccessibleName(/runner.pet.state.connecting/)
     })
 })
